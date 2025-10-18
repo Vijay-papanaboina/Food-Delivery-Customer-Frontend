@@ -7,5 +7,5 @@ export const config = {
   deliveryApiUrl:
     import.meta.env.VITE_DELIVERY_API_URL || "http://localhost:5004",
   userApiUrl: import.meta.env.VITE_USER_API_URL || "http://localhost:5005",
-  userId: import.meta.env.VITE_USER_ID || "user-123",
+  orderApiUrl: import.meta.env.VITE_ORDER_API_URL || "http://localhost:5003",
 } as const;

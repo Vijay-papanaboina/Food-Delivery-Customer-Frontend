@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useCartStore } from "@/store/cartStore";
 import { useAuthStore } from "@/store/authStore";
 import { useCreateOrder } from "@/hooks/useOrders";
@@ -41,8 +41,9 @@ export default function Checkout() {
 
   // Check if any items are missing required fields
   const hasInvalidItems = items.some(
-    (item) => !item.itemId || !item.restaurantId
+    (item) => !item.itemId || !item.restaurantId || !item.name || !item.price
   );
+
   const createOrderMutation = useCreateOrder();
   const processPaymentMutation = useProcessPayment();
 
@@ -65,7 +66,7 @@ export default function Checkout() {
     [addressesData?.addresses]
   );
   const defaultAddress = useMemo(
-    () => addresses.find((addr) => addr.is_default),
+    () => addresses.find((addr) => addr.isDefault),
     [addresses]
   );
 
@@ -73,20 +74,20 @@ export default function Checkout() {
   useEffect(() => {
     if (addresses.length > 0 && !selectedAddressId && !useNewAddress) {
       if (defaultAddress) {
-        setSelectedAddressId(defaultAddress.id);
+        setSelectedAddressId(defaultAddress.id!);
         setDeliveryAddress({
           street: defaultAddress.street,
           city: defaultAddress.city,
           state: defaultAddress.state,
-          zipCode: defaultAddress.zip_code,
+          zipCode: defaultAddress.zipCode,
         });
       } else {
-        setSelectedAddressId(addresses[0].id);
+        setSelectedAddressId(addresses[0].id!);
         setDeliveryAddress({
           street: addresses[0].street,
           city: addresses[0].city,
           state: addresses[0].state,
-          zipCode: addresses[0].zip_code,
+          zipCode: addresses[0].zipCode,
         });
       }
     }
@@ -119,7 +120,7 @@ export default function Checkout() {
         street: selectedAddress.street,
         city: selectedAddress.city,
         state: selectedAddress.state,
-        zipCode: selectedAddress.zip_code,
+        zipCode: selectedAddress.zipCode,
       });
     }
   };
@@ -171,7 +172,7 @@ export default function Checkout() {
       const orderResult = await createOrderMutation.mutateAsync({
         restaurantId,
         items: items.map((item) => ({
-          itemId: item.itemId,
+          id: item.itemId,
           quantity: item.quantity,
           price: item.price,
         })),
@@ -231,7 +232,7 @@ export default function Checkout() {
             Add some items to your cart before checking out.
           </p>
           <Button asChild>
-            <a href="/">Browse Restaurants</a>
+            <Link to="/">Browse Restaurants</Link>
           </Button>
         </div>
       </div>
@@ -252,7 +253,7 @@ export default function Checkout() {
           <div className="space-x-4">
             <Button onClick={() => clearCart()}>Clear Cart</Button>
             <Button variant="outline" asChild>
-              <a href="/">Browse Restaurants</a>
+              <Link to="/">Browse Restaurants</Link>
             </Button>
           </div>
         </div>
@@ -265,10 +266,10 @@ export default function Checkout() {
       {/* Header */}
       <div className="mb-8">
         <Button variant="ghost" asChild className="mb-4">
-          <a href="/cart">
+          <Link to="/cart">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Cart
-          </a>
+          </Link>
         </Button>
         <h1 className="text-3xl font-bold">Checkout</h1>
       </div>
@@ -298,9 +299,9 @@ export default function Checkout() {
                         key={address.id}
                         className="flex items-center space-x-2"
                       >
-                        <RadioGroupItem value={address.id} id={address.id} />
+                        <RadioGroupItem value={address.id!} id={address.id!} />
                         <Label
-                          htmlFor={address.id}
+                          htmlFor={address.id!}
                           className="flex-1 cursor-pointer p-3 border rounded-lg hover:bg-accent"
                         >
                           <div className="flex items-center justify-between">
@@ -308,10 +309,10 @@ export default function Checkout() {
                               <div className="font-medium">{address.label}</div>
                               <div className="text-sm text-muted-foreground">
                                 {address.street}, {address.city},{" "}
-                                {address.state} {address.zip_code}
+                                {address.state} {address.zipCode}
                               </div>
                             </div>
-                            {address.is_default && (
+                            {address.isDefault && (
                               <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
                                 Default
                               </span>
@@ -349,7 +350,7 @@ export default function Checkout() {
                         onClick={() => {
                           setUseNewAddress(false);
                           if (addresses.length > 0) {
-                            handleAddressSelection(addresses[0].id);
+                            handleAddressSelection(addresses[0].id!);
                           }
                         }}
                       >

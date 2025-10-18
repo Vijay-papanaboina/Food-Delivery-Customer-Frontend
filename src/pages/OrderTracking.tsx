@@ -30,15 +30,6 @@ export default function OrderTracking() {
     return ORDER_STATUSES.findIndex((s) => s.key === status);
   };
 
-  const getStatusColor = (status: string, currentIndex: number) => {
-    const statusIndex = getStatusIndex(status);
-    if (statusIndex === -1) return "text-muted-foreground";
-
-    if (statusIndex < currentIndex) return "text-green-600";
-    if (statusIndex === currentIndex) return "text-primary";
-    return "text-muted-foreground";
-  };
-
   if (orderLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -110,7 +101,6 @@ export default function OrderTracking() {
                 const Icon = status.icon;
                 const isCompleted = index < currentStatusIndex;
                 const isCurrent = index === currentStatusIndex;
-                const isPending = index > currentStatusIndex;
 
                 return (
                   <div key={status.key}>

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { restaurantApi } from "@/services/api";
+import { restaurantApi } from "@/services";
 import type { RestaurantFilters } from "@/types";
 
 // Query keys

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useRestaurants } from "@/hooks/useRestaurants";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data: restaurants, isLoading, error } = useRestaurants(filters);
+  const { data: restaurantsData, isLoading, error } = useRestaurants(filters);
+  const restaurants = restaurantsData?.restaurants || [];
 
   const handleSearch = () => {
     setFilters((prev) => ({
@@ -205,42 +207,42 @@ interface RestaurantCardProps {
 function RestaurantCard({ restaurant }: RestaurantCardProps) {
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-      <CardHeader className="p-0">
-        <div className="h-48 bg-gradient-to-br from-primary/20 to-primary/5 rounded-t-lg flex items-center justify-center">
-          <div className="text-6xl">🍽️</div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          <div>
-            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-              {restaurant.name}
-            </h3>
-            <Badge variant="secondary" className="mt-1">
-              {restaurant.cuisine}
-            </Badge>
+      <Link to={`/restaurant/${restaurant.restaurantId}`} className="block">
+        <CardHeader className="p-0">
+          <div className="h-48 bg-gradient-to-br from-primary/20 to-primary/5 rounded-t-lg flex items-center justify-center">
+            <div className="text-6xl">🍽️</div>
           </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <div>
+              <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                {restaurant.name}
+              </h3>
+              <Badge variant="secondary" className="mt-1">
+                {restaurant.cuisine}
+              </Badge>
+            </div>
 
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-yellow-500 fill-current" />
-              <span>{restaurant.rating.toFixed(1)}</span>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                <span>{restaurant.rating.toFixed(1)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>{restaurant.deliveryTime}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                <span>Delivery: ${restaurant.deliveryFee.toFixed(2)}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>{restaurant.deliveryTime}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              <span>Delivery: ${restaurant.deliveryFee.toFixed(2)}</span>
-            </div>
+
+            <Button className="w-full mt-4">View Menu</Button>
           </div>
-
-          <Button className="w-full mt-4" asChild>
-            <a href={`/restaurant/${restaurant.restaurantId}`}>View Menu</a>
-          </Button>
-        </div>
-      </CardContent>
+        </CardContent>
+      </Link>
     </Card>
   );
 }

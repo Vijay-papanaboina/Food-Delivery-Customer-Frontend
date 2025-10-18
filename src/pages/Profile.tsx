@@ -42,22 +42,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import {
-  Loader2,
-  Plus,
-  Edit,
-  Trash2,
-  MapPin,
-  User,
-  Settings,
-} from "lucide-react";
-import { toast } from "react-hot-toast";
+import { Loader2, Plus, Edit, Trash2, MapPin, User } from "lucide-react";
+import type { DeliveryAddress } from "@/types";
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditMode, setIsEditMode] = useState(false);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<any>(null);
+  const [editingAddress, setEditingAddress] = useState<DeliveryAddress | null>(
+    null
+  );
 
   const { data: profileData, isLoading: profileLoading } = useUserProfile();
   const updateProfileMutation = useUpdateProfile();
@@ -98,7 +92,7 @@ export default function Profile() {
     try {
       await updateProfileMutation.mutateAsync(profileForm);
       setIsEditMode(false);
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
@@ -108,7 +102,7 @@ export default function Profile() {
     try {
       if (editingAddress) {
         await updateAddressMutation.mutateAsync({
-          id: editingAddress.id,
+          id: editingAddress.id!,
           address: addressForm,
         });
       } else {
@@ -124,20 +118,20 @@ export default function Profile() {
         zipCode: "",
         isDefault: false,
       });
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
 
-  const handleEditAddress = (address: any) => {
+  const handleEditAddress = (address: DeliveryAddress) => {
     setEditingAddress(address);
     setAddressForm({
-      label: address.label,
+      label: address.label || "",
       street: address.street,
       city: address.city,
       state: address.state,
       zipCode: address.zipCode,
-      isDefault: address.isDefault,
+      isDefault: address.isDefault || false,
     });
     setIsAddressDialogOpen(true);
   };
@@ -145,7 +139,7 @@ export default function Profile() {
   const handleDeleteAddress = async (addressId: string) => {
     try {
       await deleteAddressMutation.mutateAsync(addressId);
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
@@ -153,7 +147,7 @@ export default function Profile() {
   const handleSetDefaultAddress = async (addressId: string) => {
     try {
       await setDefaultAddressMutation.mutateAsync(addressId);
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
@@ -161,7 +155,7 @@ export default function Profile() {
   const handleDeleteProfile = async () => {
     try {
       await deleteProfileMutation.mutateAsync();
-    } catch (error) {
+    } catch {
       // Error handled by mutation
     }
   };
@@ -324,9 +318,16 @@ export default function Profile() {
                         Member Since
                       </Label>
                       <p className="text-lg">
-                        {user?.createdAt
-                          ? new Date(user.createdAt).toLocaleDateString()
-                          : "Unknown"}
+                        {user?.createdAt && user.createdAt !== "Invalid Date"
+                          ? new Date(user.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              }
+                            )
+                          : "Recently joined"}
                       </p>
                     </div>
                   </div>
@@ -575,7 +576,7 @@ export default function Profile() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {addresses.map((address: any) => (
+                    {addresses.map((address: DeliveryAddress) => (
                       <div
                         key={address.id}
                         className="flex items-center justify-between p-4 border rounded-lg"
@@ -598,7 +599,7 @@ export default function Profile() {
                               variant="outline"
                               size="sm"
                               onClick={() =>
-                                handleSetDefaultAddress(address.id)
+                                handleSetDefaultAddress(address.id!)
                               }
                               disabled={setDefaultAddressMutation.isPending}
                             >
@@ -615,7 +616,7 @@ export default function Profile() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteAddress(address.id)}
+                            onClick={() => handleDeleteAddress(address.id!)}
                             disabled={deleteAddressMutation.isPending}
                           >
                             <Trash2 className="h-4 w-4" />

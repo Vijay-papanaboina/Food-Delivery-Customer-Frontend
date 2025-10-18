@@ -1,27 +1,16 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  phone?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { User } from "@/types";
 
 interface AuthState {
   // State
   isAuthenticated: boolean;
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
   isLoading: boolean;
   error: string | null;
 
   // Actions
-  login: (user: User, accessToken: string, refreshToken: string) => void;
+  login: (user: User, accessToken: string) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -29,67 +18,51 @@ interface AuthState {
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      // Initial state
+export const useAuthStore = create<AuthState>()((set, get) => ({
+  // Initial state
+  isAuthenticated: false,
+  user: null,
+  accessToken: null,
+  isLoading: true, // Start as loading to prevent premature redirects
+  error: null,
+
+  // Actions
+  login: (user, accessToken) => {
+    set({
+      isAuthenticated: true,
+      user,
+      accessToken,
+      error: null,
+    });
+  },
+
+  logout: () => {
+    set({
       isAuthenticated: false,
       user: null,
       accessToken: null,
-      refreshToken: null,
-      isLoading: false,
       error: null,
+    });
+  },
 
-      // Actions
-      login: (user, accessToken, refreshToken) => {
-        set({
-          isAuthenticated: true,
-          user,
-          accessToken,
-          refreshToken,
-          error: null,
-        });
-      },
+  setLoading: (loading) => {
+    set({ isLoading: loading });
+  },
 
-      logout: () => {
-        set({
-          isAuthenticated: false,
-          user: null,
-          accessToken: null,
-          refreshToken: null,
-          error: null,
-        });
-      },
+  setError: (error) => {
+    set({ error });
+  },
 
-      setLoading: (loading) => {
-        set({ isLoading: loading });
-      },
-
-      setError: (error) => {
-        set({ error });
-      },
-
-      updateUser: (userData) => {
-        const currentUser = get().user;
-        if (currentUser) {
-          set({
-            user: { ...currentUser, ...userData },
-          });
-        }
-      },
-
-      clearError: () => {
-        set({ error: null });
-      },
-    }),
-    {
-      name: "auth-storage",
-      partialize: (state) => ({
-        isAuthenticated: state.isAuthenticated,
-        user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-      }),
+  updateUser: (userData) => {
+    const currentUser = get().user;
+    if (currentUser) {
+      set({
+        user: { ...currentUser, ...userData },
+      });
     }
-  )
-);
+  },
+
+  clearError: () => {
+    set({ error: null });
+  },
+}));

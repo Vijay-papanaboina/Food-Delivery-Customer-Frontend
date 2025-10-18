@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
@@ -63,7 +62,7 @@ export default function Login() {
     try {
       await loginMutation.mutateAsync(formData);
       navigate(from, { replace: true });
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   };

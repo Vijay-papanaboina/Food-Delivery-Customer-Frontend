@@ -1,8 +1,17 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { CartItem, Cart } from "@/types";
+import type { CartItem } from "@/types";
+import { useAuthStore } from "./authStore";
+import { userApi } from "@/services";
 
-interface CartStore extends Cart {
+interface CartStore {
+  // Cart properties
+  items: CartItem[];
+  restaurantId?: string;
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+
   // Actions
   addItem: (item: Omit<CartItem, "quantity">) => void;
   removeItem: (itemId: string) => void;
@@ -11,6 +20,12 @@ interface CartStore extends Cart {
   setRestaurant: (restaurantId: string) => void;
   getItemQuantity: (itemId: string) => number;
   getTotalItems: () => number;
+
+  // Hybrid cart actions
+  loadCartFromDB: () => Promise<void>;
+  saveCartToDB: () => Promise<void>;
+  mergeLocalStorageToDB: () => Promise<void>;
+  switchToLocalStorage: () => void;
 }
 
 const calculateSubtotal = (items: CartItem[]): number => {
@@ -46,11 +61,19 @@ export const useCartStore = create<CartStore>()(
             const subtotal = calculateSubtotal(updatedItems);
             const total = calculateTotal(subtotal, state.deliveryFee);
 
-            return {
+            const newState = {
               items: updatedItems,
               subtotal,
               total,
             };
+
+            // Save to DB if logged in
+            const { isAuthenticated } = useAuthStore.getState();
+            if (isAuthenticated) {
+              setTimeout(() => get().saveCartToDB(), 0);
+            }
+
+            return newState;
           } else {
             // Add new item
             const newItem = { ...item, quantity: 1 };
@@ -58,11 +81,20 @@ export const useCartStore = create<CartStore>()(
             const subtotal = calculateSubtotal(updatedItems);
             const total = calculateTotal(subtotal, state.deliveryFee);
 
-            return {
+            const newState = {
               items: updatedItems,
+              restaurantId: item.restaurantId, // Set restaurantId when adding first item
               subtotal,
               total,
             };
+
+            // Save to DB if logged in
+            const { isAuthenticated } = useAuthStore.getState();
+            if (isAuthenticated) {
+              setTimeout(() => get().saveCartToDB(), 0);
+            }
+
+            return newState;
           }
         });
       },
@@ -75,7 +107,7 @@ export const useCartStore = create<CartStore>()(
           const subtotal = calculateSubtotal(updatedItems);
           const total = calculateTotal(subtotal, state.deliveryFee);
 
-          return {
+          const newState = {
             items: updatedItems,
             subtotal,
             total,
@@ -83,27 +115,44 @@ export const useCartStore = create<CartStore>()(
             restaurantId:
               updatedItems.length === 0 ? undefined : state.restaurantId,
           };
+
+          // Save to DB if logged in
+          const { isAuthenticated } = useAuthStore.getState();
+          if (isAuthenticated) {
+            setTimeout(() => get().saveCartToDB(), 0);
+          }
+
+          return newState;
         });
       },
 
       updateQuantity: (itemId, quantity) => {
-        set((state) => {
-          if (quantity <= 0) {
-            // Remove item if quantity is 0 or negative
-            return get().removeItem(itemId);
-          }
+        if (quantity <= 0) {
+          // Remove item if quantity is 0 or negative
+          get().removeItem(itemId);
+          return;
+        }
 
+        set((state) => {
           const updatedItems = state.items.map((item) =>
             item.itemId === itemId ? { ...item, quantity } : item
           );
           const subtotal = calculateSubtotal(updatedItems);
           const total = calculateTotal(subtotal, state.deliveryFee);
 
-          return {
+          const newState = {
             items: updatedItems,
             subtotal,
             total,
           };
+
+          // Save to DB if logged in
+          const { isAuthenticated } = useAuthStore.getState();
+          if (isAuthenticated) {
+            setTimeout(() => get().saveCartToDB(), 0);
+          }
+
+          return newState;
         });
       },
 
@@ -115,6 +164,12 @@ export const useCartStore = create<CartStore>()(
           deliveryFee: 0,
           total: 0,
         });
+
+        // Save to DB if logged in
+        const { isAuthenticated } = useAuthStore.getState();
+        if (isAuthenticated) {
+          setTimeout(() => get().saveCartToDB(), 0);
+        }
       },
 
       setRestaurant: (restaurantId) => {
@@ -142,10 +197,81 @@ export const useCartStore = create<CartStore>()(
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
       },
+
+      // Hybrid cart methods
+      loadCartFromDB: async () => {
+        try {
+          const { isAuthenticated } = useAuthStore.getState();
+          if (!isAuthenticated) return;
+
+          const response = await userApi.getCart();
+          const dbCart = response.cart;
+
+          set({
+            items: dbCart.items,
+            restaurantId: dbCart.restaurantId,
+            subtotal: dbCart.subtotal,
+            deliveryFee: dbCart.deliveryFee,
+            total: dbCart.total,
+          });
+        } catch (error) {
+          console.error("Failed to load cart from DB:", error);
+        }
+      },
+
+      saveCartToDB: async () => {
+        try {
+          const { isAuthenticated } = useAuthStore.getState();
+          if (!isAuthenticated) return;
+
+          const state = get();
+          await userApi.updateCart({
+            restaurantId: state.restaurantId || "",
+            items: state.items,
+            subtotal: state.subtotal,
+            deliveryFee: state.deliveryFee,
+            total: state.total,
+          });
+        } catch (error) {
+          console.error("Failed to save cart to DB:", error);
+        }
+      },
+
+      mergeLocalStorageToDB: async () => {
+        try {
+          const { isAuthenticated } = useAuthStore.getState();
+          if (!isAuthenticated) return;
+
+          const state = get();
+          if (state.items.length === 0) return;
+
+          // Save current localStorage cart to DB
+          await userApi.updateCart({
+            restaurantId: state.restaurantId || "",
+            items: state.items,
+            subtotal: state.subtotal,
+            deliveryFee: state.deliveryFee,
+            total: state.total,
+          });
+        } catch (error) {
+          console.error("Failed to merge cart to DB:", error);
+        }
+      },
+
+      switchToLocalStorage: () => {
+        // Just clear the current cart, localStorage will be used via persist
+        set({
+          items: [],
+          restaurantId: undefined,
+          subtotal: 0,
+          deliveryFee: 0,
+          total: 0,
+        });
+      },
     }),
     {
       name: "food-delivery-cart",
-      // Only persist cart items and restaurant ID
+      // Only persist cart items and restaurant ID for localStorage
       partialize: (state) => ({
         items: state.items,
         restaurantId: state.restaurantId,

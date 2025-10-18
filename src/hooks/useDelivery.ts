@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { deliveryApi } from "@/services/api";
+import { deliveryApi } from "@/services";
 import type { DeliveryAddress } from "@/types";
 import { toast } from "react-hot-toast";
 

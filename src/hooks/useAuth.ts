@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authApi, userApi } from "@/services/api";
+import { authApi, userApi } from "@/services";
 import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 import { toast } from "react-hot-toast";
 import type { AxiosErrorResponse } from "@/types/errors";
 import { logger } from "@/lib/logger";
@@ -24,7 +25,7 @@ export const useLogin = () => {
         userId: data.user.id,
         email: data.user.email,
       });
-      login(data.user, data.accessToken, data.refreshToken);
+      login(data.user, data.accessToken);
       queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Login successful!");
     },
@@ -45,6 +46,7 @@ export const useLogin = () => {
 
 export const useSignup = () => {
   const { login, setLoading, setError, clearError } = useAuthStore();
+  const { mergeLocalStorageToDB } = useCartStore();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -57,12 +59,16 @@ export const useSignup = () => {
       setLoading(true);
       clearError();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       logger.info(`[useSignup] Signup successful`, {
         userId: data.user.id,
         email: data.user.email,
       });
-      login(data.user, data.accessToken, data.refreshToken);
+      login(data.user, data.accessToken);
+
+      // Merge localStorage cart to DB after successful signup
+      await mergeLocalStorageToDB();
+
       queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Account created successfully!");
     },

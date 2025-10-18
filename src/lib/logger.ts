@@ -1,31 +1,31 @@
-import winston from "winston";
-
 /**
- * Winston logger for frontend application
- * Simple console-based logging without timestamps or log levels
+ * Simple console-based logger for frontend application
  */
-export const logger = winston.createLogger({
-  level: "info",
-  format: winston.format.combine(
-    winston.format.printf(({ message, ...meta }) => {
-      const metaStr =
-        Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : "";
-      return `[Frontend] ${message}${metaStr}`;
-    })
-  ),
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(({ message, ...meta }) => {
-          const metaStr =
-            Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : "";
-          return `[Frontend] ${message}${metaStr}`;
-        })
-      ),
-    }),
-  ],
-});
+export const logger = {
+  info: (message: string, meta?: Record<string, unknown>) => {
+    const metaStr =
+      meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : "";
+    console.log(`[Frontend] ${message}${metaStr}`);
+  },
+
+  warn: (message: string, meta?: Record<string, unknown>) => {
+    const metaStr =
+      meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : "";
+    console.warn(`[Frontend] ${message}${metaStr}`);
+  },
+
+  error: (message: string, meta?: Record<string, unknown>) => {
+    const metaStr =
+      meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : "";
+    console.error(`[Frontend] ${message}${metaStr}`);
+  },
+
+  debug: (message: string, meta?: Record<string, unknown>) => {
+    const metaStr =
+      meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : "";
+    console.debug(`[Frontend] ${message}${metaStr}`);
+  },
+};
 
 /**
  * Helper function to sanitize sensitive data before logging

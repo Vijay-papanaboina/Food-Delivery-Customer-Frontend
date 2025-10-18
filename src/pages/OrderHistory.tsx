@@ -1,11 +1,10 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { useOrders } from "@/hooks/useOrders";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Clock, MapPin, Eye, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Clock, Eye, ShoppingBag } from "lucide-react";
 import { format } from "date-fns";
 import { useAuthStore } from "@/store/authStore";
 

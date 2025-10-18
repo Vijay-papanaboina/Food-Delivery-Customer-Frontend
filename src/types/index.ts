@@ -56,16 +56,19 @@ export type OrderStatus =
 export type PaymentStatus = "pending" | "success" | "failed";
 
 export interface OrderItem {
-  id: string;
+  itemId: string;
   quantity: number;
   price: number;
 }
 
 export interface DeliveryAddress {
+  id?: string;
+  label?: string;
   street: string;
   city: string;
   state: string;
   zipCode: string;
+  isDefault?: boolean;
 }
 
 export interface Order {
@@ -171,10 +174,13 @@ export interface OrderFilters {
 
 // User types
 export interface User {
-  userId: string;
-  name?: string;
-  email?: string;
+  id: string;
+  name: string;
+  email: string;
   phone?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   defaultAddress?: DeliveryAddress;
 }
 

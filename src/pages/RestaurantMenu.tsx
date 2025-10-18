@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useRestaurant, useRestaurantMenu } from "@/hooks/useRestaurants";
 import { useCartStore } from "@/store/cartStore";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   ArrowLeft,
@@ -45,7 +44,7 @@ export default function RestaurantMenu() {
   // Set restaurant in cart when component mounts
   React.useEffect(() => {
     if (restaurant) {
-      setRestaurant(restaurant.restaurantId);
+      setRestaurant(restaurant.restaurant.restaurantId);
     }
   }, [restaurant, setRestaurant]);
 
@@ -57,25 +56,14 @@ export default function RestaurantMenu() {
     return uniqueCategories;
   }, [menuItems]);
 
-  const handleAddToCart = (item: MenuItem) => {
-    addItem({
-      itemId: item.itemId,
-      restaurantId: item.restaurantId,
-      name: item.name,
-      price: item.price,
-    });
-    toast.success(`${item.name} added to cart!`);
-    setSelectedItem(null);
-    setQuantity(1);
-  };
-
   const handleAddToCartWithQuantity = () => {
     if (!selectedItem) return;
 
     for (let i = 0; i < quantity; i++) {
       addItem({
         itemId: selectedItem.itemId,
-        restaurantId: selectedItem.restaurantId,
+        restaurantId:
+          restaurant?.restaurant.restaurantId || selectedItem.restaurantId,
         name: selectedItem.name,
         price: selectedItem.price,
       });
@@ -134,28 +122,32 @@ export default function RestaurantMenu() {
         <div className="bg-card border rounded-lg p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{restaurant.name}</h1>
+              <h1 className="text-3xl font-bold mb-2">
+                {restaurant.restaurant.name}
+              </h1>
               <Badge variant="secondary" className="mb-4">
-                {restaurant.cuisine}
+                {restaurant.restaurant.cuisine}
               </Badge>
               <div className="space-y-2 text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                  <span>{restaurant.rating.toFixed(1)}</span>
+                  <span>{restaurant.restaurant.rating.toFixed(1)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span>{restaurant.deliveryTime}</span>
+                  <span>{restaurant.restaurant.deliveryTime}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  <span>Delivery: ${restaurant.deliveryFee.toFixed(2)}</span>
+                  <span>
+                    Delivery: ${restaurant.restaurant.deliveryFee.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground mb-2">Address</p>
-              <p className="text-sm">{restaurant.address}</p>
+              <p className="text-sm">{restaurant.restaurant.address}</p>
             </div>
           </div>
         </div>

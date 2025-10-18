@@ -1,10 +1,19 @@
 import { create } from "zustand";
-import { userApi } from "@/services/api";
-import type { CartItem, Cart } from "@/types";
+import { userApi } from "@/services";
+import type { CartItem } from "@/types";
 
-interface DbCartStore extends Cart {
+interface DbCartStore {
+  // Cart properties
+  items: CartItem[];
+  restaurantId?: string;
+  subtotal: number;
+  deliveryFee: number;
+  total: number;
+
+  // Additional state
   isLoading: boolean;
   error: string | null;
+
   // Actions
   loadCart: () => Promise<void>;
   addItem: (item: Omit<CartItem, "quantity">) => Promise<void>;
@@ -184,7 +193,13 @@ export const useDbCartStore = create<DbCartStore>((set, get) => ({
 
     // Clear from database
     try {
-      await userApi.clearCart();
+      await userApi.updateCart({
+        restaurantId: "",
+        items: [],
+        subtotal: 0,
+        deliveryFee: 0,
+        total: 0,
+      });
     } catch (error: unknown) {
       console.error("Error clearing cart:", error);
       const errorMessage =

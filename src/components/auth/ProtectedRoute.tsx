@@ -11,7 +11,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuthStore();
   const location = useLocation();
 
+  // Debug logging
+  console.log("[ProtectedRoute] Auth state:", { isAuthenticated, isLoading });
+
   if (isLoading) {
+    console.log("[ProtectedRoute] Still loading, showing spinner");
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex items-center space-x-2">
@@ -23,9 +27,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
+    console.log("[ProtectedRoute] Not authenticated, redirecting to login");
     // Redirect to login page with return url
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  console.log("[ProtectedRoute] Authenticated, rendering children");
   return <>{children}</>;
 }

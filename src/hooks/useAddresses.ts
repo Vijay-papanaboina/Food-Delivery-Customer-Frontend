@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { userApi } from "@/services/api";
+import { userApi } from "@/services";
 import { toast } from "react-hot-toast";
 import type { AxiosErrorResponse } from "@/types/errors";
 
@@ -79,7 +79,7 @@ export const useSetDefaultAddress = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: userApi.setDefaultAddress,
+    mutationFn: (addressId: string) => userApi.updateAddress(addressId, { isDefault: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", "addresses"] });
       toast.success("Default address updated successfully!");

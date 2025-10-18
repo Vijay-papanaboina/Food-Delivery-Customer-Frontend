@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { orderApi } from "@/services/api";
+import { orderApi } from "@/services";
 import type { OrderFilters, DeliveryAddress } from "@/types";
 import { toast } from "react-hot-toast";
 import { logger } from "@/lib/logger";
@@ -34,7 +34,7 @@ export const useOrder = (orderId: string) => {
 export const useOrderStats = () => {
   return useQuery({
     queryKey: orderKeys.stats(),
-    queryFn: () => orderApi.getOrderStats(),
+    queryFn: () => orderApi.getOrders({}),
   });
 };
 
@@ -44,7 +44,7 @@ export const useCreateOrder = () => {
   return useMutation({
     mutationFn: (orderData: {
       restaurantId: string;
-      items: Array<{ itemId: string; quantity: number; price: number }>;
+      items: Array<{ id: string; quantity: number; price: number }>;
       deliveryAddress: DeliveryAddress;
     }) => orderApi.createOrder(orderData),
     onMutate: (orderData) => {
