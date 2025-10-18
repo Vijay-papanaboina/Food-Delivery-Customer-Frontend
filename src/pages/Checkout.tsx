@@ -27,8 +27,7 @@ import type { PaymentMethod } from "@/types";
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, subtotal, deliveryFee, total, clearCart, restaurantId } =
-    useCartStore();
+  const { items, subtotal, total, clearCart, restaurantId } = useCartStore();
   const { isAuthenticated, isLoading: authLoading } = useAuthStore();
 
   // Redirect to login if not authenticated
@@ -60,6 +59,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("credit_card");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [restaurantDeliveryFee, setRestaurantDeliveryFee] = useState(0);
 
   const addresses = useMemo(
     () => addressesData?.addresses || [],
@@ -92,6 +92,23 @@ export default function Checkout() {
       }
     }
   }, [addresses, defaultAddress, selectedAddressId, useNewAddress]);
+
+  // Fetch restaurant delivery fee
+  useEffect(() => {
+    const fetchDeliveryFee = async () => {
+      if (restaurantId) {
+        try {
+          const { restaurantApi } = await import("@/services");
+          const restaurant = await restaurantApi.getRestaurant(restaurantId);
+          setRestaurantDeliveryFee(restaurant.restaurant.deliveryFee);
+        } catch (error) {
+          console.error("Failed to fetch restaurant delivery fee:", error);
+        }
+      }
+    };
+
+    fetchDeliveryFee();
+  }, [restaurantId]);
 
   const paymentMethods = [
     { id: "credit_card", name: "Credit Card", icon: CreditCard },
@@ -150,6 +167,22 @@ export default function Checkout() {
       return;
     }
 
+    // Filter out unavailable items before checkout
+    const availableItems = items.filter((item) => item.isAvailable !== false);
+
+    if (availableItems.length === 0) {
+      toast.error("No available items in cart");
+      return;
+    }
+
+    if (availableItems.length < items.length) {
+      toast.error(
+        `${
+          items.length - availableItems.length
+        } unavailable items removed from order`
+      );
+    }
+
     // Validate address
     const requiredFields = ["street", "city", "state", "zipCode"] as const;
     const missingFields = requiredFields.filter(
@@ -167,11 +200,44 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
+      // Re-fetch current prices for validation
+      const { restaurantApi } = await import("@/services");
+      const menuItems = await restaurantApi.getRestaurantMenu(restaurantId);
+      const updatedItems = availableItems
+        .map((cartItem) => {
+          const currentMenuItem = menuItems.find(
+            (m) => m.itemId === cartItem.itemId
+          );
+          if (!currentMenuItem || !currentMenuItem.isAvailable) {
+            return null; // Item no longer available
+          }
+          if (currentMenuItem.price !== cartItem.price) {
+            toast.error(`Price changed for ${cartItem.name}`);
+          }
+          return {
+            ...cartItem,
+            price: currentMenuItem.price, // Use current price
+          };
+        })
+        .filter((item) => item !== null);
+
+      if (updatedItems.length === 0) {
+        toast.error("No available items remaining after price validation");
+        return;
+      }
+
+      // Recalculate totals with current prices
+      const newSubtotal = updatedItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      const newTotal = newSubtotal + restaurantDeliveryFee;
+
       // Create order
       logger.info(`[Checkout] Creating order`);
       const orderResult = await createOrderMutation.mutateAsync({
         restaurantId,
-        items: items.map((item) => ({
+        items: updatedItems.map((item) => ({
           id: item.itemId,
           quantity: item.quantity,
           price: item.price,
@@ -188,13 +254,13 @@ export default function Checkout() {
       logger.info(`[Checkout] Processing payment`);
       await processPaymentMutation.mutateAsync({
         orderId: order.orderId,
-        amount: total,
+        amount: newTotal,
         method: paymentMethod,
       });
 
       logger.info(`[Checkout] Order placement completed successfully`, {
         orderId: order.orderId,
-        totalAmount: total,
+        totalAmount: newTotal,
       });
 
       // Clear cart and redirect
@@ -210,18 +276,6 @@ export default function Checkout() {
       setIsProcessing(false);
     }
   };
-
-  // Show loading while checking authentication
-  if (authLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (items.length === 0) {
     return (
@@ -514,12 +568,12 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Fee</span>
-                  <span>${deliveryFee.toFixed(2)}</span>
+                  <span>${restaurantDeliveryFee.toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>${(subtotal + restaurantDeliveryFee).toFixed(2)}</span>
                 </div>
               </div>
 

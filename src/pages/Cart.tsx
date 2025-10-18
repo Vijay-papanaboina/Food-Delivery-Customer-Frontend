@@ -1,22 +1,23 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { useCartStore } from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loading } from "@/components/ui/loading";
+import {
+  ArrowLeft,
+  Plus,
+  Minus,
+  Trash2,
+  ShoppingBag,
+  AlertTriangle,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export default function Cart() {
-  const {
-    items,
-    subtotal,
-    deliveryFee,
-    total,
-    updateQuantity,
-    removeItem,
-    clearCart,
-  } = useCartStore();
+  const { items, total, updateQuantity, removeItem, clearCart, isLoading } =
+    useCartStore();
+  const { isLoading: authLoading } = useAuthStore();
 
   const handleQuantityChange = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
@@ -36,6 +37,16 @@ export default function Cart() {
     clearCart();
     toast.success("Cart cleared");
   };
+
+  // Show loading state while auth is initializing or cart is loading
+  if (authLoading || isLoading) {
+    return (
+      <Loading
+        title="Loading your cart..."
+        message={authLoading ? "Initializing..." : "Fetching cart items..."}
+      />
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -71,46 +82,74 @@ export default function Cart() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => (
-            <Card key={item.itemId}>
+            <Card
+              key={item.itemId}
+              className={
+                item.isAvailable === false ? "opacity-60 border-orange-200" : ""
+              }
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{item.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-lg">{item.name}</h3>
+                      {item.isAvailable === false && (
+                        <div className="flex items-center gap-1 text-orange-600 text-sm">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span>Unavailable</span>
+                        </div>
+                      )}
+                    </div>
                     <p className="text-muted-foreground">
-                      ${item.price.toFixed(2)} each
+                      {item.isAvailable === false
+                        ? "Item no longer available"
+                        : `$${item.price.toFixed(2)} each`}
                     </p>
                   </div>
 
                   <div className="flex items-center space-x-4">
-                    {/* Quantity Controls */}
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleQuantityChange(item.itemId, item.quantity - 1)
-                        }
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="w-8 text-center font-medium">
-                        {item.quantity}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleQuantityChange(item.itemId, item.quantity + 1)
-                        }
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {/* Quantity Controls - only show for available items */}
+                    {item.isAvailable !== false && (
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleQuantityChange(item.itemId, item.quantity - 1)
+                          }
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="w-8 text-center font-medium">
+                          {item.quantity}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleQuantityChange(item.itemId, item.quantity + 1)
+                          }
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Quantity Display for unavailable items */}
+                    {item.isAvailable === false && (
+                      <div className="text-center">
+                        <span className="text-sm text-muted-foreground">
+                          Qty: {item.quantity}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Price */}
                     <div className="text-right">
                       <div className="font-semibold">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {item.isAvailable === false
+                          ? "N/A"
+                          : `$${(item.price * item.quantity).toFixed(2)}`}
                       </div>
                     </div>
 
@@ -141,36 +180,32 @@ export default function Cart() {
           </div>
         </div>
 
-        {/* Order Summary */}
+        {/* Checkout Section */}
         <div className="lg:col-span-1">
           <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Subtotal ({items.length} items)</span>
-                  <span>${subtotal.toFixed(2)}</span>
+            <CardContent className="p-6">
+              <div className="text-center space-y-4">
+                <div>
+                  <div className="text-2xl font-bold">${total.toFixed(2)}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {items.filter((item) => item.isAvailable !== false).length}{" "}
+                    items
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>Delivery Fee</span>
-                  <span>${deliveryFee.toFixed(2)}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between text-lg font-semibold">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
-              </div>
 
-              <Button className="w-full" size="lg" asChild>
-                <Link to="/checkout">Proceed to Checkout</Link>
-              </Button>
+                {items.some((item) => item.isAvailable === false) && (
+                  <div className="text-sm text-orange-600 flex items-center justify-center gap-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>Some items unavailable</span>
+                  </div>
+                )}
 
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Secure checkout with multiple payment options
+                <Button className="w-full" size="lg" asChild>
+                  <Link to="/checkout">Proceed to Checkout</Link>
+                </Button>
+
+                <p className="text-xs text-muted-foreground">
+                  Review order details at checkout
                 </p>
               </div>
             </CardContent>

@@ -10,7 +10,7 @@ import { logger } from "@/lib/logger";
  */
 export const useAuthInit = () => {
   const { setLoading } = useAuthStore();
-  const { loadCartFromDB } = useCartStore();
+  const { loadCartFromDB, setLoading: setCartLoading } = useCartStore();
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -46,9 +46,12 @@ export const useAuthInit = () => {
           await loadCartFromDB();
         } else {
           logger.info("[useAuthInit] User is not authenticated");
+          // For guest users, set cart loading to false
+          setCartLoading(false);
         }
       } catch (error) {
         logger.error("[useAuthInit] Auth initialization failed", { error });
+        setCartLoading(false);
       } finally {
         console.log("[useAuthInit] Setting loading to false");
         setLoading(false);
@@ -56,5 +59,5 @@ export const useAuthInit = () => {
     };
 
     initializeAuth();
-  }, [setLoading, loadCartFromDB]);
+  }, [setLoading, loadCartFromDB, setCartLoading]);
 };

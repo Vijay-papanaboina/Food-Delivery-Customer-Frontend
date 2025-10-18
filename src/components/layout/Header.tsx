@@ -14,10 +14,10 @@ import {
 
 export default function Header() {
   const location = useLocation();
-  const { getTotalItems } = useCartStore();
+  const { getUniqueItemsCount } = useCartStore();
   const { isAuthenticated, user } = useAuthStore();
   const logoutMutation = useLogout();
-  const totalItems = getTotalItems();
+  const uniqueItemsCount = getUniqueItemsCount();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -82,9 +82,9 @@ export default function Header() {
             >
               <ShoppingCart className="h-5 w-5" />
               <span className="hidden sm:inline">Cart</span>
-              {totalItems > 0 && (
+              {uniqueItemsCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                  {totalItems}
+                  {uniqueItemsCount}
                 </span>
               )}
             </Link>

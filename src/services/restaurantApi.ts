@@ -1,7 +1,7 @@
 import { config } from "@/config/env";
 import { logger } from "@/lib/logger";
 import type { Restaurant, MenuItem, RestaurantFilters } from "@/types";
-import type { BackendRestaurant, BackendMenuItem } from "@/types/api";
+import type { BackendRestaurant } from "@/types/api";
 import { ApiService } from "./baseApi";
 
 // Restaurant API
@@ -113,21 +113,26 @@ export class RestaurantApi extends ApiService {
     const params = category ? `?category=${category}` : "";
     const response = await this.get<{
       message: string;
-      menu: BackendMenuItem[];
+      menu: MenuItem[];
     }>(`/api/restaurants/${restaurantId}/menu${params}`);
 
-    // Transform BackendMenuItem to MenuItem
-    return response.menu.map((item: BackendMenuItem) => ({
-      itemId: item.item_id,
-      restaurantId: item.restaurant_id,
-      name: item.name,
-      description: item.description,
-      price: parseFloat(item.price),
-      category: item.category,
-      isAvailable: item.is_available,
-      preparationTime: item.preparation_time,
-      createdAt: item.created_at,
-    }));
+    // Backend already returns camelCase, so return directly
+    return response.menu;
+  };
+
+  getMenuItem = async (itemId: string): Promise<MenuItem> => {
+    logger.info(`[RestaurantAPI] Getting menu item`, { itemId });
+
+    const result = await this.get<{ message: string; item: MenuItem }>(
+      `/api/menu-items/${itemId}`
+    );
+
+    logger.info(`[RestaurantAPI] Menu item retrieved successfully`, {
+      itemId,
+      name: result.item.name,
+    });
+
+    return result.item;
   };
 
   validateMenuItems = async (

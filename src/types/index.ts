@@ -33,6 +33,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   image?: string;
+  isAvailable?: boolean;
 }
 
 export interface Cart {

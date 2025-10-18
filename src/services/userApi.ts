@@ -1,6 +1,6 @@
 import { config } from "@/config/env";
 import { logger } from "@/lib/logger";
-import type { User, DeliveryAddress, Cart } from "@/types";
+import type { User, DeliveryAddress } from "@/types";
 import type { BackendUser, BackendAddress } from "@/types/api";
 import { ApiService } from "./baseApi";
 
@@ -140,8 +140,8 @@ export class UserApi extends ApiService {
       street: addressData.street,
       city: addressData.city,
       state: addressData.state,
-      zip_code: addressData.zipCode,
-      is_default: addressData.isDefault || false,
+      zipCode: addressData.zipCode,
+      isDefault: addressData.isDefault || false,
     });
 
     // Transform BackendAddress to DeliveryAddress
@@ -191,8 +191,8 @@ export class UserApi extends ApiService {
       street: addressData.street,
       city: addressData.city,
       state: addressData.state,
-      zip_code: addressData.zipCode,
-      is_default: addressData.isDefault,
+      zipCode: addressData.zipCode,
+      isDefault: addressData.isDefault,
     });
 
     // Transform BackendAddress to DeliveryAddress
@@ -229,45 +229,34 @@ export class UserApi extends ApiService {
     return result;
   };
 
-  getCart = async (): Promise<{ message: string; cart: Cart }> => {
+  getCart = async (): Promise<{
+    message: string;
+    items: Array<{ itemId: string; quantity: number }>;
+  }> => {
     logger.info(`[UserAPI] Getting user cart`);
 
-    const result = await this.get<{ message: string; cart: Cart }>("/api/cart");
+    const result = await this.get<{
+      message: string;
+      items: Array<{ itemId: string; quantity: number }>;
+    }>("/api/cart");
 
     logger.info(`[UserAPI] User cart retrieved successfully`, {
-      itemCount: result.cart.items.length,
-      total: result.cart.total,
+      itemCount: result.items.length,
     });
 
     return result;
   };
 
-  updateCart = async (cartData: {
-    restaurantId: string;
-    items: Array<{
-      itemId: string;
-      quantity: number;
-      price: number;
-    }>;
-    subtotal: number;
-    deliveryFee: number;
-    total: number;
-  }): Promise<{ message: string; cart: Cart }> => {
+  updateCart = async (
+    items: Array<{ itemId: string; quantity: number }>
+  ): Promise<{ message: string }> => {
     logger.info(`[UserAPI] Updating user cart`, {
-      restaurantId: cartData.restaurantId,
-      itemCount: cartData.items.length,
-      total: cartData.total,
+      itemCount: items.length,
     });
 
-    const result = await this.put<{ message: string; cart: Cart }>(
-      "/api/cart",
-      cartData
-    );
+    const result = await this.put<{ message: string }>("/api/cart", { items });
 
-    logger.info(`[UserAPI] User cart updated successfully`, {
-      itemCount: result.cart.items.length,
-      total: result.cart.total,
-    });
+    logger.info(`[UserAPI] User cart updated successfully`);
 
     return result;
   };

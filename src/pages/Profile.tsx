@@ -42,7 +42,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Edit, Trash2, MapPin, User } from "lucide-react";
+import { InlineLoading, PageLoading } from "@/components/ui/loading";
+import { Plus, Edit, Trash2, MapPin, User } from "lucide-react";
 import type { DeliveryAddress } from "@/types";
 
 export default function Profile() {
@@ -57,7 +58,7 @@ export default function Profile() {
   const updateProfileMutation = useUpdateProfile();
   const deleteProfileMutation = useDeleteProfile();
 
-  const { data: addressesData, isLoading: addressesLoading } = useAddresses();
+  const { data: addressesData } = useAddresses();
   const addAddressMutation = useAddAddress();
   const updateAddressMutation = useUpdateAddress();
   const deleteAddressMutation = useDeleteAddress();
@@ -162,12 +163,10 @@ export default function Profile() {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading profile...</span>
-        </div>
-      </div>
+      <PageLoading
+        title="Loading profile..."
+        message="Fetching your profile information..."
+      />
     );
   }
 
@@ -277,7 +276,7 @@ export default function Profile() {
                       >
                         {updateProfileMutation.isPending ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <InlineLoading className="mr-2" />
                             Saving...
                           </>
                         ) : (
@@ -370,7 +369,7 @@ export default function Profile() {
                       >
                         {deleteProfileMutation.isPending ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <InlineLoading className="mr-2" />
                             Deleting...
                           </>
                         ) : (
@@ -537,7 +536,7 @@ export default function Profile() {
                             {addAddressMutation.isPending ||
                             updateAddressMutation.isPending ? (
                               <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <InlineLoading className="mr-2" />
                                 Saving...
                               </>
                             ) : editingAddress ? (
@@ -560,11 +559,7 @@ export default function Profile() {
                 </div>
               </CardHeader>
               <CardContent>
-                {addressesLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  </div>
-                ) : addresses.length === 0 ? (
+                {addresses.length === 0 ? (
                   <div className="text-center py-8">
                     <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium mb-2">
