@@ -9,23 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  ArrowLeft,
-  CreditCard,
-  Smartphone,
-  DollarSign,
-  Loader2,
-  MapPin,
-  Plus,
-} from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Plus } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "react-hot-toast";
-import type { PaymentMethod } from "@/types";
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, subtotal, total, clearCart, restaurantId } = useCartStore();
+  const { items, subtotal, clearCart, restaurantId } = useCartStore();
   const { isAuthenticated, isLoading: authLoading } = useAuthStore();
 
   // Redirect to login if not authenticated
@@ -54,8 +45,6 @@ export default function Checkout() {
     state: "",
     zipCode: "",
   });
-  const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod>("credit_card");
   const [isProcessing, setIsProcessing] = useState(false);
   const [restaurantDeliveryFee, setRestaurantDeliveryFee] = useState(0);
 
@@ -106,14 +95,6 @@ export default function Checkout() {
 
     fetchDeliveryFee();
   }, [restaurantId]);
-
-  const paymentMethods = [
-    { id: "credit_card", name: "Credit Card", icon: CreditCard },
-    { id: "debit_card", name: "Debit Card", icon: CreditCard },
-    { id: "paypal", name: "PayPal", icon: Smartphone },
-    { id: "cash", name: "Cash on Delivery", icon: DollarSign },
-    { id: "crypto", name: "Cryptocurrency", icon: Smartphone },
-  ] as const;
 
   const handleAddressChange = (
     field: keyof typeof deliveryAddress,
@@ -173,22 +154,16 @@ export default function Checkout() {
 
       const order = orderResult.order;
 
-      // 2. Process payment
-      await paymentApi.processPayment({
+      // 2. Create Stripe Checkout session
+      const sessionResponse = await paymentApi.processPayment({
         orderId: order.orderId,
-        amount: total,
-        method: paymentMethod,
       });
 
-      // 3. On success, navigate to order page
-      clearCart();
-      toast.success("Order placed successfully!");
-      navigate(`/orders/${order.orderId}`);
+      // 3. Redirect to Stripe Checkout
+      window.location.href = sessionResponse.url;
     } catch (error) {
-      console.error("Failed to place order:", error);
-      // Handle error
-      toast.error("Failed to place order. Please try again.");
-    } finally {
+      console.error("Failed to initialize payment:", error);
+      toast.error("Failed to initialize payment. Please try again.");
       isPlacingOrder.current = false;
       setIsProcessing(false);
     }
@@ -411,39 +386,6 @@ export default function Checkout() {
                   )}
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Payment Method */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Method</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {paymentMethods.map((method) => {
-                  const Icon = method.icon;
-                  return (
-                    <div
-                      key={method.id}
-                      className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                        paymentMethod === method.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:bg-accent"
-                      }`}
-                      onClick={() =>
-                        setPaymentMethod(method.id as PaymentMethod)
-                      }
-                    >
-                      <Icon className="h-5 w-5" />
-                      <span className="font-medium">{method.name}</span>
-                      {paymentMethod === method.id && (
-                        <div className="ml-auto h-2 w-2 rounded-full bg-primary" />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
             </CardContent>
           </Card>
         </div>

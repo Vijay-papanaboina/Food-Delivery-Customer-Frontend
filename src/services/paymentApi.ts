@@ -1,6 +1,6 @@
 import { config } from "@/config/env";
 import { logger } from "@/lib/logger";
-import type { Payment, PaymentMethod } from "@/types";
+import type { Payment } from "@/types";
 import { ApiService } from "./baseApi";
 
 // Payment API
@@ -11,33 +11,20 @@ export class PaymentApi extends ApiService {
 
   processPayment = async (paymentData: {
     orderId: string;
-    amount: number;
-    method: PaymentMethod;
-    cardDetails?: {
-      number: string;
-      expiryMonth: string;
-      expiryYear: string;
-      cvv: string;
-      name: string;
-    };
-  }): Promise<{ message: string; payment: Payment }> => {
-    logger.info(`[PaymentAPI] Processing payment`, {
+  }): Promise<{ message: string; sessionId: string; url: string }> => {
+    logger.info(`[PaymentAPI] Creating Stripe Checkout session`, {
       orderId: paymentData.orderId,
-      amount: paymentData.amount,
-      method: paymentData.method,
-      hasCardDetails: !!paymentData.cardDetails,
     });
 
-    const result = await this.post<{ message: string; payment: Payment }>(
-      "/api/payments",
-      paymentData
-    );
+    const result = await this.post<{
+      message: string;
+      sessionId: string;
+      url: string;
+    }>("/api/payments", paymentData);
 
-    logger.info(`[PaymentAPI] Payment processed successfully`, {
-      paymentId: result.payment.paymentId,
-      orderId: result.payment.orderId,
-      amount: result.payment.amount,
-      status: result.payment.status,
+    logger.info(`[PaymentAPI] Stripe Checkout session created successfully`, {
+      sessionId: result.sessionId,
+      orderId: paymentData.orderId,
     });
 
     return result;

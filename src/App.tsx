@@ -12,6 +12,7 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import OrderTracking from "@/pages/OrderTracking";
 import OrderHistory from "@/pages/OrderHistory";
+import OrderSuccess from "@/pages/OrderSuccess";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Profile from "@/pages/Profile";
@@ -40,6 +41,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Checkout />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/order-success"
+                element={
+                  <ProtectedRoute>
+                    <OrderSuccess />
                   </ProtectedRoute>
                 }
               />

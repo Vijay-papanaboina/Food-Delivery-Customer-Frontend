@@ -10,4 +10,5 @@ export const config = {
   userApiUrl: import.meta.env.VITE_USER_API_URL || "http://localhost:5005",
   restaurantApiUrl:
     import.meta.env.VITE_RESTAURANT_API_URL || "http://localhost:5006",
+  stripePublishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
 } as const;
