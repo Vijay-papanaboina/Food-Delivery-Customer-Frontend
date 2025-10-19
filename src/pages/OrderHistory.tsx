@@ -219,7 +219,7 @@ function OrderCard({ order }: OrderCardProps) {
 
           <div className="ml-6 flex flex-col space-y-2">
             <Button asChild>
-              <Link to={`/order/${order.orderId}`}>
+              <Link to={`/orders/${order.orderId}`}>
                 <Eye className="h-4 w-4 mr-2" />
                 Track Order
               </Link>

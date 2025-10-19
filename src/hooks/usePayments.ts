@@ -48,6 +48,7 @@ export const useProcessPayment = () => {
       amount: number;
       method: PaymentMethod;
     }) => paymentApi.processPayment(paymentData),
+    retry: false, // Prevent auto-retry
     onSuccess: () => {
       // Invalidate and refetch payments and orders
       queryClient.invalidateQueries({ queryKey: paymentKeys.lists() });

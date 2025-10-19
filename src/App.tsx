@@ -44,7 +44,7 @@ function App() {
                 }
               />
               <Route
-                path="/order/:orderId"
+                path="/orders/:orderId"
                 element={
                   <ProtectedRoute>
                     <OrderTracking />

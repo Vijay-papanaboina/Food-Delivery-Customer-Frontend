@@ -1,11 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCartStore } from "@/store/cartStore";
 import { useAuthStore } from "@/store/authStore";
-import { useCreateOrder } from "@/hooks/useOrders";
-import { useProcessPayment } from "@/hooks/usePayments";
+import { orderApi, paymentApi } from "@/services";
 import { useAddresses } from "@/hooks/useAddresses";
-import { logger } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,8 +41,8 @@ export default function Checkout() {
     (item) => !item.itemId || !item.restaurantId || !item.name || !item.price
   );
 
-  const createOrderMutation = useCreateOrder();
-  const processPaymentMutation = useProcessPayment();
+  // Prevent concurrent order placement
+  const isPlacingOrder = useRef(false);
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [useNewAddress, setUseNewAddress] = useState(false);
@@ -153,90 +151,19 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = async () => {
-    logger.info(`[Checkout] Order placement started`, {
-      restaurantId,
-      itemsCount: items.length,
-      totalAmount: total,
-      paymentMethod,
-    });
-
-    if (!restaurantId) {
-      logger.warn(`[Checkout] No restaurant selected`);
-      toast.error("No restaurant selected");
+    // Simple guard - if already processing, ignore
+    if (isPlacingOrder.current) {
       return;
     }
 
-    // Filter out unavailable items before checkout
-    const availableItems = items.filter((item) => item.isAvailable !== false);
-
-    if (availableItems.length === 0) {
-      toast.error("No available items in cart");
-      return;
-    }
-
-    if (availableItems.length < items.length) {
-      toast.error(
-        `${
-          items.length - availableItems.length
-        } unavailable items removed from order`
-      );
-    }
-
-    // Validate address
-    const requiredFields = ["street", "city", "state", "zipCode"] as const;
-    const missingFields = requiredFields.filter(
-      (field) => !deliveryAddress[field]
-    );
-
-    if (missingFields.length > 0) {
-      logger.warn(`[Checkout] Address validation failed`, {
-        missingFields,
-      });
-      toast.error(`Please fill in: ${missingFields.join(", ")}`);
-      return;
-    }
-
+    isPlacingOrder.current = true;
     setIsProcessing(true);
 
     try {
-      // Re-fetch current prices for validation
-      const { restaurantApi } = await import("@/services");
-      const menuItems = await restaurantApi.getRestaurantMenu(restaurantId);
-      const updatedItems = availableItems
-        .map((cartItem) => {
-          const currentMenuItem = menuItems.find(
-            (m) => m.itemId === cartItem.itemId
-          );
-          if (!currentMenuItem || !currentMenuItem.isAvailable) {
-            return null; // Item no longer available
-          }
-          if (currentMenuItem.price !== cartItem.price) {
-            toast.error(`Price changed for ${cartItem.name}`);
-          }
-          return {
-            ...cartItem,
-            price: currentMenuItem.price, // Use current price
-          };
-        })
-        .filter((item) => item !== null);
-
-      if (updatedItems.length === 0) {
-        toast.error("No available items remaining after price validation");
-        return;
-      }
-
-      // Recalculate totals with current prices
-      const newSubtotal = updatedItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-      const newTotal = newSubtotal + restaurantDeliveryFee;
-
-      // Create order
-      logger.info(`[Checkout] Creating order`);
-      const orderResult = await createOrderMutation.mutateAsync({
-        restaurantId,
-        items: updatedItems.map((item) => ({
+      // 1. Create order with pending payment status
+      const orderResult = await orderApi.createOrder({
+        restaurantId: restaurantId!,
+        items: items.map((item) => ({
           id: item.itemId,
           quantity: item.quantity,
           price: item.price,
@@ -245,33 +172,24 @@ export default function Checkout() {
       });
 
       const order = orderResult.order;
-      logger.info(`[Checkout] Order created successfully`, {
-        orderId: order.orderId,
-      });
 
-      // Process payment
-      logger.info(`[Checkout] Processing payment`);
-      await processPaymentMutation.mutateAsync({
+      // 2. Process payment
+      await paymentApi.processPayment({
         orderId: order.orderId,
-        amount: newTotal,
+        amount: total,
         method: paymentMethod,
       });
 
-      logger.info(`[Checkout] Order placement completed successfully`, {
-        orderId: order.orderId,
-        totalAmount: newTotal,
-      });
-
-      // Clear cart and redirect
+      // 3. On success, navigate to order page
       clearCart();
       toast.success("Order placed successfully!");
-      navigate(`/order/${order.orderId}`);
+      navigate(`/orders/${order.orderId}`);
     } catch (error) {
-      logger.error(`[Checkout] Order placement failed`, {
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
+      console.error("Failed to place order:", error);
+      // Handle error
       toast.error("Failed to place order. Please try again.");
     } finally {
+      isPlacingOrder.current = false;
       setIsProcessing(false);
     }
   };
