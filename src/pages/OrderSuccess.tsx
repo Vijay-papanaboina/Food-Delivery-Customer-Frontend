@@ -7,19 +7,31 @@ import { ArrowLeft, CheckCircle } from "lucide-react";
 
 export default function OrderSuccess() {
   const navigate = useNavigate();
-  const { clearCart } = useCartStore();
+  const { clearCart, isLoading, loadCartFromDB } = useCartStore();
 
   useEffect(() => {
-    // Clear cart on success
-    clearCart();
+    const clearCartAfterLoad = async () => {
+      // Wait for cart to finish loading from DB
+      if (isLoading) {
+        return; // Will re-run when isLoading becomes false
+      }
 
-    // Redirect after 5 seconds
-    const timer = setTimeout(() => {
-      navigate("/orders");
-    }, 5000);
+      // Clear cart silently in background
+      await clearCart();
 
-    return () => clearTimeout(timer);
-  }, [clearCart, navigate]);
+      // Redirect after 5 seconds
+      const timer = setTimeout(() => {
+        navigate("/orders");
+      }, 5000);
+
+      // Now load the cart again (after clearing)
+      await loadCartFromDB();
+      // Cleanup timer if unmounted
+      return () => clearTimeout(timer);
+    };
+
+    clearCartAfterLoad();
+  }, [clearCart, navigate, isLoading, loadCartFromDB]);
 
   return (
     <div className="container mx-auto px-4 py-8">

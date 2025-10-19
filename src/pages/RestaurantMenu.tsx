@@ -56,11 +56,11 @@ export default function RestaurantMenu() {
     return uniqueCategories;
   }, [menuItems]);
 
-  const handleAddToCartWithQuantity = () => {
+  const handleAddToCartWithQuantity = async () => {
     if (!selectedItem) return;
 
     for (let i = 0; i < quantity; i++) {
-      addItem({
+      await addItem({
         itemId: selectedItem.itemId,
         restaurantId:
           restaurant?.restaurant.restaurantId || selectedItem.restaurantId,

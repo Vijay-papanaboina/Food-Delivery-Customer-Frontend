@@ -11,12 +11,13 @@ interface CartStore {
   deliveryFee: number;
   total: number;
   isLoading: boolean;
+  isUpdating: boolean; // For individual operations
 
   // Actions
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (itemId: string) => void;
-  updateQuantity: (itemId: string, quantity: number) => void;
-  clearCart: () => void;
+  addItem: (item: Omit<CartItem, "quantity">) => Promise<void>;
+  removeItem: (itemId: string) => Promise<void>;
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   setRestaurant: (restaurantId: string) => void;
   getItemQuantity: (itemId: string) => number;
   getTotalItems: () => number;
@@ -28,6 +29,7 @@ interface CartStore {
   mergeLocalStorageToDB: () => Promise<void>;
   switchToLocalStorage: () => void;
   setLoading: (loading: boolean) => void;
+  setUpdating: (updating: boolean) => void;
 }
 
 const calculateSubtotal = (items: CartItem[]): number => {
@@ -46,9 +48,10 @@ export const useCartStore = create<CartStore>()((set, get) => ({
   deliveryFee: 0,
   total: 0,
   isLoading: true,
+  isUpdating: false,
 
   // Actions
-  addItem: (item) => {
+  addItem: async (item) => {
     set((state) => {
       // Check if adding item from different restaurant
       if (state.restaurantId && state.restaurantId !== item.restaurantId) {
@@ -75,25 +78,11 @@ export const useCartStore = create<CartStore>()((set, get) => ({
         const subtotal = calculateSubtotal(updatedItems);
         const total = calculateTotal(subtotal);
 
-        const newState = {
+        return {
           items: updatedItems,
           subtotal,
           total,
         };
-
-        // Save to DB if logged in, localStorage if guest
-        const { isAuthenticated } = useAuthStore.getState();
-        if (isAuthenticated) {
-          get()
-            .saveCartToDB()
-            .catch((error) => {
-              console.error("Failed to save cart to DB:", error);
-            });
-        } else {
-          saveCartToLocalStorage();
-        }
-
-        return newState;
       } else {
         // Add new item
         const newItem = { ...item, quantity: 1 };
@@ -101,31 +90,29 @@ export const useCartStore = create<CartStore>()((set, get) => ({
         const subtotal = calculateSubtotal(updatedItems);
         const total = calculateTotal(subtotal);
 
-        const newState = {
+        return {
           items: updatedItems,
           restaurantId: item.restaurantId, // Set restaurantId when adding first item
           subtotal,
           total,
         };
-
-        // Save to DB if logged in, localStorage if guest
-        const { isAuthenticated } = useAuthStore.getState();
-        if (isAuthenticated) {
-          get()
-            .saveCartToDB()
-            .catch((error) => {
-              console.error("Failed to save cart to DB:", error);
-            });
-        } else {
-          saveCartToLocalStorage();
-        }
-
-        return newState;
       }
     });
+
+    // Save to DB after state is updated
+    const { isAuthenticated } = useAuthStore.getState();
+    if (isAuthenticated) {
+      try {
+        await get().saveCartToDB();
+      } catch (error) {
+        console.error("Failed to save cart to DB:", error);
+      }
+    } else {
+      saveCartToLocalStorage();
+    }
   },
 
-  removeItem: (itemId) => {
+  removeItem: async (itemId) => {
     set((state) => {
       const updatedItems = state.items.filter((item) => item.itemId !== itemId);
       const subtotal = calculateSubtotal(updatedItems);
@@ -140,24 +127,24 @@ export const useCartStore = create<CartStore>()((set, get) => ({
           updatedItems.length === 0 ? undefined : state.restaurantId,
       };
 
-      // Save to DB if logged in
-      const { isAuthenticated } = useAuthStore.getState();
-      if (isAuthenticated) {
-        get()
-          .saveCartToDB()
-          .catch((error) => {
-            console.error("Failed to save cart to DB:", error);
-          });
-      }
-
       return newState;
     });
+
+    // Save to DB if logged in
+    const { isAuthenticated } = useAuthStore.getState();
+    if (isAuthenticated) {
+      try {
+        await get().saveCartToDB();
+      } catch (error) {
+        console.error("Failed to save cart to DB:", error);
+      }
+    }
   },
 
-  updateQuantity: (itemId, quantity) => {
+  updateQuantity: async (itemId, quantity) => {
     if (quantity <= 0) {
       // Remove item if quantity is 0 or negative
-      get().removeItem(itemId);
+      await get().removeItem(itemId);
       return;
     }
 
@@ -174,21 +161,21 @@ export const useCartStore = create<CartStore>()((set, get) => ({
         total,
       };
 
-      // Save to DB if logged in
-      const { isAuthenticated } = useAuthStore.getState();
-      if (isAuthenticated) {
-        get()
-          .saveCartToDB()
-          .catch((error) => {
-            console.error("Failed to save cart to DB:", error);
-          });
-      }
-
       return newState;
     });
+
+    // Save to DB if logged in
+    const { isAuthenticated } = useAuthStore.getState();
+    if (isAuthenticated) {
+      try {
+        await get().saveCartToDB();
+      } catch (error) {
+        console.error("Failed to save cart to DB:", error);
+      }
+    }
   },
 
-  clearCart: () => {
+  clearCart: async () => {
     set({
       items: [],
       restaurantId: undefined,
@@ -200,7 +187,11 @@ export const useCartStore = create<CartStore>()((set, get) => ({
     // Save to DB if logged in, localStorage if guest
     const { isAuthenticated } = useAuthStore.getState();
     if (isAuthenticated) {
-      setTimeout(() => get().saveCartToDB(), 0);
+      try {
+        await get().saveCartToDB();
+      } catch (error) {
+        console.error("Failed to save cart to DB:", error);
+      }
     } else {
       saveCartToLocalStorage();
     }
@@ -337,6 +328,8 @@ export const useCartStore = create<CartStore>()((set, get) => ({
       const { isAuthenticated } = useAuthStore.getState();
       if (!isAuthenticated) return;
 
+      set({ isUpdating: true });
+
       const state = get();
       // Send only itemId + quantity to backend
       await userApi.updateCart(
@@ -347,6 +340,8 @@ export const useCartStore = create<CartStore>()((set, get) => ({
       );
     } catch (error) {
       console.error("Failed to save cart to DB:", error);
+    } finally {
+      set({ isUpdating: false });
     }
   },
 
@@ -383,6 +378,10 @@ export const useCartStore = create<CartStore>()((set, get) => ({
 
   setLoading: (loading: boolean) => {
     set({ isLoading: loading });
+  },
+
+  setUpdating: (updating: boolean) => {
+    set({ isUpdating: updating });
   },
 }));
 

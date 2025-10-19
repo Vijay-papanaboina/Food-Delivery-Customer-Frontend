@@ -15,21 +15,28 @@ import {
 import { toast } from "react-hot-toast";
 
 export default function Cart() {
-  const { items, total, updateQuantity, removeItem, clearCart, isLoading } =
-    useCartStore();
+  const {
+    items,
+    total,
+    updateQuantity,
+    removeItem,
+    clearCart,
+    isLoading,
+    isUpdating,
+  } = useCartStore();
   const { isLoading: authLoading } = useAuthStore();
 
-  const handleQuantityChange = (itemId: string, quantity: number) => {
+  const handleQuantityChange = async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(itemId);
+      await removeItem(itemId);
       toast.success("Item removed from cart");
     } else {
-      updateQuantity(itemId, quantity);
+      await updateQuantity(itemId, quantity);
     }
   };
 
-  const handleRemoveItem = (itemId: string, itemName: string) => {
-    removeItem(itemId);
+  const handleRemoveItem = async (itemId: string, itemName: string) => {
+    await removeItem(itemId);
     toast.success(`${itemName} removed from cart`);
   };
 
@@ -114,6 +121,7 @@ export default function Cart() {
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={isUpdating}
                           onClick={() =>
                             handleQuantityChange(item.itemId, item.quantity - 1)
                           }
@@ -121,11 +129,12 @@ export default function Cart() {
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span className="w-8 text-center font-medium">
-                          {item.quantity}
+                          {isUpdating ? "..." : item.quantity}
                         </span>
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={isUpdating}
                           onClick={() =>
                             handleQuantityChange(item.itemId, item.quantity + 1)
                           }
@@ -157,6 +166,7 @@ export default function Cart() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      disabled={isUpdating}
                       onClick={() => handleRemoveItem(item.itemId, item.name)}
                       className="text-destructive hover:text-destructive"
                     >
@@ -172,10 +182,11 @@ export default function Cart() {
           <div className="flex justify-end">
             <Button
               variant="outline"
+              disabled={isUpdating}
               onClick={handleClearCart}
               className="text-destructive hover:text-destructive"
             >
-              Clear Cart
+              {isUpdating ? "Updating..." : "Clear Cart"}
             </Button>
           </div>
         </div>
