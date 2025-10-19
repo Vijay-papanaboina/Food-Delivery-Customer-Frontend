@@ -3,7 +3,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthInit } from "@/hooks/useAuthInit";
-import { useCartSync } from "@/hooks/useCartSync";
 import Layout from "@/components/layout/Layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Home from "@/pages/Home";
@@ -18,9 +17,8 @@ import Signup from "@/pages/Signup";
 import Profile from "@/pages/Profile";
 
 function App() {
-  // Initialize authentication and cart sync
+  // Initialize authentication
   useAuthInit();
-  useCartSync();
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -13,18 +13,11 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: authApi.login,
-    onMutate: (credentials) => {
-      logger.info(`[useLogin] Login mutation started`, {
-        email: credentials.email,
-      });
+    onMutate: () => {
       setLoading(true);
       clearError();
     },
     onSuccess: (data) => {
-      logger.info(`[useLogin] Login successful`, {
-        userId: data.user.id,
-        email: data.user.email,
-      });
       login(data.user, data.accessToken);
       queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Login successful!");
@@ -51,19 +44,11 @@ export const useSignup = () => {
 
   return useMutation({
     mutationFn: authApi.signup,
-    onMutate: (userData) => {
-      logger.info(`[useSignup] Signup mutation started`, {
-        email: userData.email,
-        name: userData.name,
-      });
+    onMutate: () => {
       setLoading(true);
       clearError();
     },
     onSuccess: async (data) => {
-      logger.info(`[useSignup] Signup successful`, {
-        userId: data.user.id,
-        email: data.user.email,
-      });
       login(data.user, data.accessToken);
 
       // Merge localStorage cart to DB after successful signup

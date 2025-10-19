@@ -21,12 +21,6 @@ export class AuthApi extends ApiService {
     user: User;
     accessToken: string;
   }> => {
-    logger.info(`[AuthAPI] User signup attempt`, {
-      email: userData.email,
-      name: userData.name,
-      hasPhone: !!userData.phone,
-    });
-
     const result = await this.post<{
       message: string;
       user: BackendUser;
@@ -44,11 +38,6 @@ export class AuthApi extends ApiService {
       updatedAt: result.user.updated_at,
     };
 
-    logger.info(`[AuthAPI] User signup successful`, {
-      userId: user.id,
-      email: user.email,
-    });
-
     return {
       message: result.message,
       user,
@@ -64,10 +53,6 @@ export class AuthApi extends ApiService {
     user: User;
     accessToken: string;
   }> => {
-    logger.info(`[AuthAPI] User login attempt`, {
-      email: credentials.email,
-    });
-
     const result = await this.post<{
       message: string;
       user: BackendUser;
@@ -84,11 +69,6 @@ export class AuthApi extends ApiService {
       createdAt: result.user.created_at,
       updatedAt: result.user.updated_at,
     };
-
-    logger.info(`[AuthAPI] User login successful`, {
-      userId: user.id,
-      email: user.email,
-    });
 
     return {
       message: result.message,
@@ -111,25 +91,12 @@ export class AuthApi extends ApiService {
 
   checkAuth = async (): Promise<{ isAuthenticated: boolean; user?: User }> => {
     try {
-      logger.info(
-        `[AuthAPI] checkAuth called - using refresh token from cookies`
-      );
-
       // Always try to refresh token from cookies
       try {
         const refreshResponse = await this.refreshToken();
-        logger.info(`[AuthAPI] Refresh token successful`, {
-          hasAccessToken: !!refreshResponse.accessToken,
-        });
 
         // Use user data from refresh response (not from JWT)
         try {
-          logger.info(`[AuthAPI] Got user data from refresh response:`, {
-            userId: refreshResponse.user.id,
-            name: refreshResponse.user.name,
-            email: refreshResponse.user.email,
-          });
-
           // Transform BackendUser to User
           const user: User = {
             id: refreshResponse.user.id,
@@ -141,14 +108,7 @@ export class AuthApi extends ApiService {
             updatedAt: refreshResponse.user.updated_at,
           };
 
-          logger.info(`[AuthAPI] Updating auth store with new token and user`, {
-            userId: user.id,
-            name: user.name,
-            email: user.email,
-          });
-
           useAuthStore.getState().login(user, refreshResponse.accessToken);
-          logger.info(`[AuthAPI] Auth store updated successfully`);
           return { isAuthenticated: true, user };
         } catch (error) {
           logger.error(

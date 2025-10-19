@@ -1,5 +1,4 @@
 import { config } from "@/config/env";
-import { logger } from "@/lib/logger";
 import type { Restaurant, MenuItem, RestaurantFilters } from "@/types";
 import type { BackendRestaurant } from "@/types/api";
 import { ApiService } from "./baseApi";
@@ -32,11 +31,6 @@ export class RestaurantApi extends ApiService {
       ? `/api/restaurants?${queryString}`
       : "/api/restaurants";
 
-    logger.info(`[RestaurantAPI] Getting restaurants`, {
-      filters: filters || {},
-      queryString,
-    });
-
     const result = await this.get<{
       message: string;
       restaurants: BackendRestaurant[];
@@ -58,10 +52,6 @@ export class RestaurantApi extends ApiService {
       })
     );
 
-    logger.info(`[RestaurantAPI] Restaurants retrieved successfully`, {
-      count: restaurants.length,
-    });
-
     return {
       message: result.message,
       restaurants,
@@ -74,8 +64,6 @@ export class RestaurantApi extends ApiService {
     message: string;
     restaurant: Restaurant;
   }> => {
-    logger.info(`[RestaurantAPI] Getting restaurant`, { restaurantId });
-
     const result = await this.get<{
       message: string;
       restaurant: BackendRestaurant;
@@ -94,11 +82,6 @@ export class RestaurantApi extends ApiService {
       isActive: result.restaurant.is_active,
       createdAt: result.restaurant.created_at,
     };
-
-    logger.info(`[RestaurantAPI] Restaurant retrieved successfully`, {
-      restaurantId: restaurant.restaurantId,
-      name: restaurant.name,
-    });
 
     return {
       message: result.message,
@@ -121,16 +104,9 @@ export class RestaurantApi extends ApiService {
   };
 
   getMenuItem = async (itemId: string): Promise<MenuItem> => {
-    logger.info(`[RestaurantAPI] Getting menu item`, { itemId });
-
     const result = await this.get<{ message: string; item: MenuItem }>(
       `/api/menu-items/${itemId}`
     );
-
-    logger.info(`[RestaurantAPI] Menu item retrieved successfully`, {
-      itemId,
-      name: result.item.name,
-    });
 
     return result.item;
   };

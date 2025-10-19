@@ -84,7 +84,11 @@ export const useCartStore = create<CartStore>()((set, get) => ({
         // Save to DB if logged in, localStorage if guest
         const { isAuthenticated } = useAuthStore.getState();
         if (isAuthenticated) {
-          setTimeout(() => get().saveCartToDB(), 0);
+          get()
+            .saveCartToDB()
+            .catch((error) => {
+              console.error("Failed to save cart to DB:", error);
+            });
         } else {
           saveCartToLocalStorage();
         }
@@ -107,7 +111,11 @@ export const useCartStore = create<CartStore>()((set, get) => ({
         // Save to DB if logged in, localStorage if guest
         const { isAuthenticated } = useAuthStore.getState();
         if (isAuthenticated) {
-          setTimeout(() => get().saveCartToDB(), 0);
+          get()
+            .saveCartToDB()
+            .catch((error) => {
+              console.error("Failed to save cart to DB:", error);
+            });
         } else {
           saveCartToLocalStorage();
         }
@@ -135,7 +143,11 @@ export const useCartStore = create<CartStore>()((set, get) => ({
       // Save to DB if logged in
       const { isAuthenticated } = useAuthStore.getState();
       if (isAuthenticated) {
-        setTimeout(() => get().saveCartToDB(), 0);
+        get()
+          .saveCartToDB()
+          .catch((error) => {
+            console.error("Failed to save cart to DB:", error);
+          });
       }
 
       return newState;
@@ -165,7 +177,11 @@ export const useCartStore = create<CartStore>()((set, get) => ({
       // Save to DB if logged in
       const { isAuthenticated } = useAuthStore.getState();
       if (isAuthenticated) {
-        setTimeout(() => get().saveCartToDB(), 0);
+        get()
+          .saveCartToDB()
+          .catch((error) => {
+            console.error("Failed to save cart to DB:", error);
+          });
       }
 
       return newState;

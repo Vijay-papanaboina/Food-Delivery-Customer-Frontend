@@ -21,11 +21,6 @@ export class ApiService {
       const { accessToken } = useAuthStore.getState();
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
-        logger.info(
-          `[API] JWT token attached to ${config.method?.toUpperCase()} ${
-            config.url
-          }`
-        );
       } else {
         logger.warn(
           `[API] No JWT token available for ${config.method?.toUpperCase()} ${
@@ -82,16 +77,8 @@ export class ApiService {
     const sanitizedData = config.data
       ? sanitizeForLogging(config.data)
       : undefined;
-
-    logger.info(`[API] ${method.toUpperCase()} ${url}`, {
-      dataKeys: sanitizedData ? Object.keys(sanitizedData) : undefined,
-    });
-
     try {
       const response = await this.api(config);
-      logger.info(`[API] ${method.toUpperCase()} ${url} - Success`, {
-        status: response.status,
-      });
       return response.data;
     } catch (error) {
       const axiosError = error as {

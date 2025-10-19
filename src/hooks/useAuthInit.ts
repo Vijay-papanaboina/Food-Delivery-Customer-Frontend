@@ -14,38 +14,15 @@ export const useAuthInit = () => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      console.log("[useAuthInit] Starting auth initialization");
       setLoading(true);
 
       try {
-        logger.info("[useAuthInit] Checking authentication status");
-        logger.info("[useAuthInit] Current auth state before checkAuth:", {
-          isAuthenticated: useAuthStore.getState().isAuthenticated,
-          hasAccessToken: !!useAuthStore.getState().accessToken,
-          hasUser: !!useAuthStore.getState().user,
-        });
-
         const authResult = await authApi.checkAuth();
 
-        logger.info("[useAuthInit] checkAuth result:", authResult);
-
         if (authResult.isAuthenticated && authResult.user) {
-          logger.info("[useAuthInit] User is authenticated", {
-            userId: authResult.user.id,
-            email: authResult.user.email,
-            name: authResult.user.name,
-          });
-          logger.info("[useAuthInit] Auth state after checkAuth:", {
-            isAuthenticated: useAuthStore.getState().isAuthenticated,
-            hasAccessToken: !!useAuthStore.getState().accessToken,
-            hasUser: !!useAuthStore.getState().user,
-          });
-
           // Load cart from database for authenticated user
-          logger.info("[useAuthInit] Loading cart from database");
           await loadCartFromDB();
         } else {
-          logger.info("[useAuthInit] User is not authenticated");
           // For guest users, set cart loading to false
           setCartLoading(false);
         }
@@ -53,7 +30,6 @@ export const useAuthInit = () => {
         logger.error("[useAuthInit] Auth initialization failed", { error });
         setCartLoading(false);
       } finally {
-        console.log("[useAuthInit] Setting loading to false");
         setLoading(false);
       }
     };

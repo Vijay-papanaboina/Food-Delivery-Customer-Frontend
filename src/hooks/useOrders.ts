@@ -48,17 +48,8 @@ export const useCreateOrder = () => {
       deliveryAddress: DeliveryAddress;
     }) => orderApi.createOrder(orderData),
     retry: false, // Prevent auto-retry
-    onMutate: (orderData) => {
-      logger.info(`[useCreateOrder] Order creation started`, {
-        restaurantId: orderData.restaurantId,
-        itemsCount: orderData.items.length,
-      });
-    },
-    onSuccess: (data) => {
-      logger.info(`[useCreateOrder] Order created successfully`, {
-        orderId: data.order.orderId,
-        restaurantId: data.order.restaurantId,
-      });
+    onMutate: () => {},
+    onSuccess: () => {
       // Invalidate and refetch orders
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
       queryClient.invalidateQueries({ queryKey: orderKeys.stats() });

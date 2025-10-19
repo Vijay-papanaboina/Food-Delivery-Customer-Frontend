@@ -9,11 +9,9 @@ export const refreshAccessToken = async (): Promise<string> => {
     const refreshResponse = await authApi.refreshToken();
 
     // Update the stored access token
-    logger.info(`[TokenRefresh] Updating auth store with new access token`);
     useAuthStore
       .getState()
       .login(useAuthStore.getState().user!, refreshResponse.accessToken);
-    logger.info(`[TokenRefresh] Auth store updated successfully`);
 
     return refreshResponse.accessToken;
   } catch (error) {

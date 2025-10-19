@@ -11,8 +11,6 @@ export class UserApi extends ApiService {
   }
 
   getProfile = async (): Promise<{ message: string; user: User }> => {
-    logger.info(`[UserAPI] Getting user profile`);
-
     const result = await this.get<{
       message: string;
       user: BackendUser;
@@ -29,11 +27,6 @@ export class UserApi extends ApiService {
       updatedAt: result.user.updated_at,
     };
 
-    logger.info(`[UserAPI] User profile retrieved successfully`, {
-      userId: user.id,
-      email: user.email,
-    });
-
     return {
       message: result.message,
       user,
@@ -44,11 +37,6 @@ export class UserApi extends ApiService {
     name?: string;
     phone?: string;
   }): Promise<{ message: string; user: User }> => {
-    logger.info(`[UserAPI] Updating user profile`, {
-      hasName: !!userData.name,
-      hasPhone: !!userData.phone,
-    });
-
     const result = await this.put<{
       message: string;
       user: BackendUser;
@@ -65,11 +53,6 @@ export class UserApi extends ApiService {
       updatedAt: result.user.updated_at,
     };
 
-    logger.info(`[UserAPI] User profile updated successfully`, {
-      userId: user.id,
-      email: user.email,
-    });
-
     return {
       message: result.message,
       user,
@@ -77,11 +60,7 @@ export class UserApi extends ApiService {
   };
 
   deleteProfile = async (): Promise<{ message: string }> => {
-    logger.info(`[UserAPI] Deleting user profile`);
-
     const result = await this.delete<{ message: string }>("/api/users/profile");
-
-    logger.info(`[UserAPI] User profile deleted successfully`);
 
     return result;
   };
@@ -90,8 +69,6 @@ export class UserApi extends ApiService {
     message: string;
     addresses: DeliveryAddress[];
   }> => {
-    logger.info(`[UserAPI] Getting user addresses`);
-
     const result = await this.get<{
       message: string;
       addresses: BackendAddress[];
@@ -108,10 +85,6 @@ export class UserApi extends ApiService {
       isDefault: addr.isDefault,
     }));
 
-    logger.info(`[UserAPI] User addresses retrieved successfully`, {
-      count: addresses.length,
-    });
-
     return {
       message: result.message,
       addresses,
@@ -126,12 +99,6 @@ export class UserApi extends ApiService {
     zipCode: string;
     isDefault?: boolean;
   }): Promise<{ message: string; address: DeliveryAddress }> => {
-    logger.info(`[UserAPI] Adding new address`, {
-      label: addressData.label,
-      city: addressData.city,
-      state: addressData.state,
-    });
-
     const result = await this.post<{
       message: string;
       address: BackendAddress;
@@ -155,11 +122,6 @@ export class UserApi extends ApiService {
       isDefault: result.address.isDefault,
     };
 
-    logger.info(`[UserAPI] Address added successfully`, {
-      addressId: address.id,
-      label: address.label,
-    });
-
     return {
       message: result.message,
       address,
@@ -177,12 +139,6 @@ export class UserApi extends ApiService {
       isDefault?: boolean;
     }
   ): Promise<{ message: string; address: DeliveryAddress }> => {
-    logger.info(`[UserAPI] Updating address`, {
-      addressId,
-      hasLabel: !!addressData.label,
-      hasStreet: !!addressData.street,
-    });
-
     const result = await this.put<{
       message: string;
       address: BackendAddress;
@@ -206,11 +162,6 @@ export class UserApi extends ApiService {
       isDefault: result.address.isDefault,
     };
 
-    logger.info(`[UserAPI] Address updated successfully`, {
-      addressId: address.id,
-      label: address.label,
-    });
-
     return {
       message: result.message,
       address,
@@ -218,13 +169,9 @@ export class UserApi extends ApiService {
   };
 
   deleteAddress = async (addressId: string): Promise<{ message: string }> => {
-    logger.info(`[UserAPI] Deleting address`, { addressId });
-
     const result = await this.delete<{ message: string }>(
       `/api/users/addresses/${addressId}`
     );
-
-    logger.info(`[UserAPI] Address deleted successfully`, { addressId });
 
     return result;
   };
@@ -255,8 +202,6 @@ export class UserApi extends ApiService {
     });
 
     const result = await this.put<{ message: string }>("/api/cart", { items });
-
-    logger.info(`[UserAPI] User cart updated successfully`);
 
     return result;
   };
