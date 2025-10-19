@@ -29,7 +29,7 @@ export class PaymentApi extends ApiService {
     });
 
     const result = await this.post<{ message: string; payment: Payment }>(
-      "/api/payments/process",
+      "/api/payments",
       paymentData
     );
 

@@ -104,8 +104,8 @@ export class UserApi extends ApiService {
       street: addr.street,
       city: addr.city,
       state: addr.state,
-      zipCode: addr.zip_code,
-      isDefault: addr.is_default,
+      zipCode: addr.zipCode,
+      isDefault: addr.isDefault,
     }));
 
     logger.info(`[UserAPI] User addresses retrieved successfully`, {
@@ -151,8 +151,8 @@ export class UserApi extends ApiService {
       street: result.address.street,
       city: result.address.city,
       state: result.address.state,
-      zipCode: result.address.zip_code,
-      isDefault: result.address.is_default,
+      zipCode: result.address.zipCode,
+      isDefault: result.address.isDefault,
     };
 
     logger.info(`[UserAPI] Address added successfully`, {
@@ -202,8 +202,8 @@ export class UserApi extends ApiService {
       street: result.address.street,
       city: result.address.city,
       state: result.address.state,
-      zipCode: result.address.zip_code,
-      isDefault: result.address.is_default,
+      zipCode: result.address.zipCode,
+      isDefault: result.address.isDefault,
     };
 
     logger.info(`[UserAPI] Address updated successfully`, {

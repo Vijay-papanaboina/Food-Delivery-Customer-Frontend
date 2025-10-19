@@ -36,16 +36,15 @@ export interface BackendUser {
 
 export interface BackendAddress {
   id: string;
-  user_id: string;
+  userId: string;
   label: string;
   street: string;
   city: string;
   state: string;
-  zip_code: string;
-  is_default: boolean;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  zipCode: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BackendOrder {

@@ -61,10 +61,9 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [restaurantDeliveryFee, setRestaurantDeliveryFee] = useState(0);
 
-  const addresses = useMemo(
-    () => addressesData?.addresses || [],
-    [addressesData?.addresses]
-  );
+  const addresses = useMemo(() => {
+    return addressesData?.addresses || [];
+  }, [addressesData?.addresses]);
   const defaultAddress = useMemo(
     () => addresses.find((addr) => addr.isDefault),
     [addresses]
