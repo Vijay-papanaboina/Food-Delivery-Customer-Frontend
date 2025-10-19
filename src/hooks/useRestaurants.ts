@@ -43,7 +43,7 @@ export const useRestaurantMenu = (restaurantId: string, category?: string) => {
 export const useRestaurantStatus = (restaurantId: string) => {
   return useQuery({
     queryKey: [...restaurantKeys.detail(restaurantId), "status"],
-    queryFn: () => restaurantApi.getRestaurantStatus(restaurantId),
+    queryFn: () => restaurantApi.getRestaurant(restaurantId),
     enabled: !!restaurantId,
   });
 };
