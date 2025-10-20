@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { authApi } from "@/services";
@@ -11,8 +11,11 @@ import { logger } from "@/lib/logger";
 export const useAuthInit = () => {
   const { setLoading } = useAuthStore();
   const { loadCartFromDB, setLoading: setCartLoading } = useCartStore();
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
+    if (hasInitialized.current) return; // Prevent double execution in StrictMode
+    hasInitialized.current = true;
     const initializeAuth = async () => {
       setLoading(true);
 
@@ -35,5 +38,5 @@ export const useAuthInit = () => {
     };
 
     initializeAuth();
-  }, [setLoading, loadCartFromDB, setCartLoading]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 };

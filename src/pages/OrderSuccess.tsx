@@ -7,7 +7,7 @@ import { ArrowLeft, CheckCircle } from "lucide-react";
 
 export default function OrderSuccess() {
   const navigate = useNavigate();
-  const { clearCart, isLoading, loadCartFromDB } = useCartStore();
+  const { clearCart, isLoading } = useCartStore();
 
   useEffect(() => {
     const clearCartAfterLoad = async () => {
@@ -24,14 +24,12 @@ export default function OrderSuccess() {
         navigate("/orders");
       }, 5000);
 
-      // Now load the cart again (after clearing)
-      await loadCartFromDB();
       // Cleanup timer if unmounted
       return () => clearTimeout(timer);
     };
 
     clearCartAfterLoad();
-  }, [clearCart, navigate, isLoading, loadCartFromDB]);
+  }, [isLoading]);
 
   return (
     <div className="container mx-auto px-4 py-8">
