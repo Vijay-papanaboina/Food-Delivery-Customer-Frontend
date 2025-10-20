@@ -89,38 +89,83 @@ export class AuthApi extends ApiService {
     return this.post("/api/auth/validate");
   };
 
+  private handleRefreshResponse = (refreshResponse: {
+    accessToken: string;
+    user: BackendUser;
+  }): { isAuthenticated: boolean; user: User } => {
+    // Transform BackendUser to User
+    const user: User = {
+      id: refreshResponse.user.id,
+      name: refreshResponse.user.name,
+      email: refreshResponse.user.email,
+      phone: refreshResponse.user.phone,
+      isActive: refreshResponse.user.is_active,
+      createdAt: refreshResponse.user.created_at,
+      updatedAt: refreshResponse.user.updated_at,
+    };
+
+    // Store new token in localStorage and update Zustand
+    localStorage.setItem("access_token", refreshResponse.accessToken);
+    useAuthStore.getState().login(user, refreshResponse.accessToken);
+
+    return { isAuthenticated: true, user };
+  };
+
   checkAuth = async (): Promise<{ isAuthenticated: boolean; user?: User }> => {
     try {
-      // Always try to refresh token from cookies
-      try {
-        const refreshResponse = await this.refreshToken();
+      // Step 1: Check localStorage for access token
+      const storedToken = localStorage.getItem("access_token");
 
-        // Use user data from refresh response (not from JWT)
+      if (storedToken) {
+        // Step 2: Validate the token
         try {
+          const validateResponse = await this.validateToken();
+
           // Transform BackendUser to User
           const user: User = {
-            id: refreshResponse.user.id,
-            name: refreshResponse.user.name,
-            email: refreshResponse.user.email,
-            phone: refreshResponse.user.phone,
-            isActive: refreshResponse.user.is_active,
-            createdAt: refreshResponse.user.created_at,
-            updatedAt: refreshResponse.user.updated_at,
+            id: validateResponse.user.id,
+            name: validateResponse.user.name,
+            email: validateResponse.user.email,
+            phone: validateResponse.user.phone,
+            isActive: validateResponse.user.is_active,
+            createdAt: validateResponse.user.created_at,
+            updatedAt: validateResponse.user.updated_at,
           };
 
-          useAuthStore.getState().login(user, refreshResponse.accessToken);
+          // Update user in Zustand store
+          useAuthStore.getState().login(user, storedToken);
           return { isAuthenticated: true, user };
-        } catch (error) {
-          logger.error(
-            `[AuthAPI] Failed to process user data from refresh response`,
-            {
-              error,
-            }
-          );
-          return { isAuthenticated: false };
+        } catch (validateError) {
+          // Step 3: Token validation failed, try to refresh
+          logger.warn(`[AuthAPI] Token validation failed, attempting refresh`, {
+            error: validateError,
+          });
+
+          try {
+            const refreshResponse = await this.refreshToken();
+            return this.handleRefreshResponse(refreshResponse);
+          } catch (error) {
+            logger.error(`[AuthAPI] Refresh token failed`, { error });
+            // Clear invalid tokens
+            localStorage.removeItem("access_token");
+            useAuthStore.getState().logout();
+            return { isAuthenticated: false };
+          }
         }
+      }
+
+      // No stored token found, but try to refresh from HTTP-only cookie
+      logger.info(
+        `[AuthAPI] No stored token found, attempting refresh from cookie`
+      );
+      try {
+        const refreshResponse = await this.refreshToken();
+        return this.handleRefreshResponse(refreshResponse);
       } catch (error) {
         logger.error(`[AuthAPI] Refresh token failed`, { error });
+        // Clear any invalid tokens
+        localStorage.removeItem("access_token");
+        useAuthStore.getState().logout();
         return { isAuthenticated: false };
       }
     } catch (error) {

@@ -29,7 +29,7 @@ export default function OrderSuccess() {
     };
 
     clearCartAfterLoad();
-  }, [isLoading]);
+  }, [isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="container mx-auto px-4 py-8">

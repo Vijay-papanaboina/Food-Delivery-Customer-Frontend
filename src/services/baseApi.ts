@@ -19,8 +19,12 @@ export class ApiService {
     // Add request interceptor to include JWT token
     this.api.interceptors.request.use((config) => {
       const { accessToken } = useAuthStore.getState();
-      if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
+
+      // Try Zustand store first, then localStorage fallback
+      const token = accessToken || localStorage.getItem("access_token");
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
       } else {
         logger.warn(
           `[API] No JWT token available for ${config.method?.toUpperCase()} ${
