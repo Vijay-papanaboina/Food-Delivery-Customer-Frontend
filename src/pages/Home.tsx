@@ -201,48 +201,91 @@ interface RestaurantCardProps {
     deliveryTime: string;
     deliveryFee: number;
     isActive: boolean;
+    isOpen: boolean;
   };
 }
 
 function RestaurantCard({ restaurant }: RestaurantCardProps) {
+  const isDisabled = !restaurant.isOpen;
+
+  const cardContent = (
+    <>
+      <CardHeader className="p-0">
+        <div
+          className={`h-48 bg-gradient-to-br from-primary/20 to-primary/5 rounded-t-lg flex items-center justify-center relative ${
+            isDisabled ? "opacity-60" : ""
+          }`}
+        >
+          <div className="text-6xl">🍽️</div>
+          {isDisabled && (
+            <div className="absolute top-2 right-2">
+              <Badge variant="destructive">Closed</Badge>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          <div>
+            <h3
+              className={`font-semibold text-lg transition-colors ${
+                isDisabled
+                  ? "text-muted-foreground"
+                  : "group-hover:text-primary"
+              }`}
+            >
+              {restaurant.name}
+            </h3>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary">{restaurant.cuisine}</Badge>
+              {restaurant.isOpen && (
+                <Badge variant="default" className="text-xs">
+                  Open
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+              <span>{restaurant.rating.toFixed(1)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>{restaurant.deliveryTime}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              <span>Delivery: ${restaurant.deliveryFee.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <Button
+            className="w-full mt-4"
+            disabled={isDisabled}
+            variant={isDisabled ? "outline" : "default"}
+          >
+            {isDisabled ? "Currently Closed" : "View Menu"}
+          </Button>
+        </div>
+      </CardContent>
+    </>
+  );
+
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-      <Link to={`/restaurant/${restaurant.restaurantId}`} className="block">
-        <CardHeader className="p-0">
-          <div className="h-48 bg-gradient-to-br from-primary/20 to-primary/5 rounded-t-lg flex items-center justify-center">
-            <div className="text-6xl">🍽️</div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            <div>
-              <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                {restaurant.name}
-              </h3>
-              <Badge variant="secondary" className="mt-1">
-                {restaurant.cuisine}
-              </Badge>
-            </div>
-
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                <span>{restaurant.rating.toFixed(1)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>{restaurant.deliveryTime}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                <span>Delivery: ${restaurant.deliveryFee.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <Button className="w-full mt-4">View Menu</Button>
-          </div>
-        </CardContent>
-      </Link>
+    <Card
+      className={`transition-shadow ${
+        isDisabled ? "opacity-75" : "hover:shadow-lg cursor-pointer group"
+      }`}
+    >
+      {isDisabled ? (
+        <div className="block">{cardContent}</div>
+      ) : (
+        <Link to={`/restaurant/${restaurant.restaurantId}`} className="block">
+          {cardContent}
+        </Link>
+      )}
     </Card>
   );
 }

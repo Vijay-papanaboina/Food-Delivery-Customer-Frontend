@@ -9,6 +9,7 @@ export interface Restaurant {
   deliveryTime: string;
   deliveryFee: number;
   isActive: boolean;
+  isOpen: boolean;
   createdAt: string;
 }
 

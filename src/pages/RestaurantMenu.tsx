@@ -122,9 +122,14 @@ export default function RestaurantMenu() {
         <div className="bg-card border rounded-lg p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">
-                {restaurant.restaurant.name}
-              </h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold">
+                  {restaurant.restaurant.name}
+                </h1>
+                {!restaurant.restaurant.isOpen && (
+                  <Badge variant="destructive">Closed</Badge>
+                )}
+              </div>
               <Badge variant="secondary" className="mb-4">
                 {restaurant.restaurant.cuisine}
               </Badge>
@@ -152,6 +157,22 @@ export default function RestaurantMenu() {
           </div>
         </div>
       </div>
+
+      {/* Restaurant Closed Notice */}
+      {!restaurant.restaurant.isOpen && (
+        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+          <div className="flex items-center gap-2 text-destructive">
+            <Clock className="h-5 w-5" />
+            <div>
+              <p className="font-semibold">Restaurant is currently closed</p>
+              <p className="text-sm text-destructive/80">
+                You can browse the menu, but you won't be able to place orders
+                until the restaurant opens.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Menu */}
       {menuLoading ? (
@@ -183,6 +204,7 @@ export default function RestaurantMenu() {
                   item={item}
                   onSelect={setSelectedItem}
                   getQuantity={getItemQuantity}
+                  isRestaurantOpen={restaurant.restaurant.isOpen}
                 />
               ))}
             </div>
@@ -248,8 +270,19 @@ export default function RestaurantMenu() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <Button onClick={handleAddToCartWithQuantity}>
-                  Add to Cart - ${(selectedItem.price * quantity).toFixed(2)}
+                <Button
+                  onClick={handleAddToCartWithQuantity}
+                  disabled={
+                    !selectedItem.isAvailable || !restaurant.restaurant.isOpen
+                  }
+                >
+                  {!restaurant.restaurant.isOpen
+                    ? "Restaurant Closed"
+                    : !selectedItem.isAvailable
+                    ? "Item Unavailable"
+                    : `Add to Cart - $${(selectedItem.price * quantity).toFixed(
+                        2
+                      )}`}
                 </Button>
               </div>
             </div>
@@ -264,17 +297,36 @@ interface MenuItemCardProps {
   item: MenuItem;
   onSelect: (item: MenuItem) => void;
   getQuantity: (itemId: string) => number;
+  isRestaurantOpen: boolean;
 }
 
-function MenuItemCard({ item, onSelect, getQuantity }: MenuItemCardProps) {
+function MenuItemCard({
+  item,
+  onSelect,
+  getQuantity,
+  isRestaurantOpen,
+}: MenuItemCardProps) {
   const quantity = getQuantity(item.itemId);
+  const isItemAvailable = item.isAvailable && isRestaurantOpen;
+  const isDisabled = !isItemAvailable;
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card
+      className={`transition-shadow ${
+        isDisabled ? "opacity-60" : "hover:shadow-md"
+      }`}
+    >
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg">{item.name}</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-lg">{item.name}</h3>
+              {!item.isAvailable && isRestaurantOpen && (
+                <Badge variant="destructive" className="text-xs">
+                  Unavailable
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
               {item.description}
             </p>
@@ -295,9 +347,18 @@ function MenuItemCard({ item, onSelect, getQuantity }: MenuItemCardProps) {
             {quantity > 0 && (
               <Badge variant="secondary">{quantity} in cart</Badge>
             )}
-            <Button size="sm" onClick={() => onSelect(item)}>
+            <Button
+              size="sm"
+              onClick={() => onSelect(item)}
+              disabled={isDisabled}
+              variant={isDisabled ? "outline" : "default"}
+            >
               <Plus className="h-4 w-4 mr-1" />
-              Add
+              {isDisabled
+                ? !isRestaurantOpen
+                  ? "Closed"
+                  : "Unavailable"
+                : "Add"}
             </Button>
           </div>
         </div>

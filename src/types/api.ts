@@ -9,6 +9,7 @@ export interface BackendRestaurant {
   delivery_time: string;
   delivery_fee: string;
   is_active: boolean;
+  is_open: boolean;
   created_at: string;
 }
 
