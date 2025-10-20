@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import { ShoppingCart, Home, History, User, LogOut } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useAuthStore } from "@/store/authStore";
@@ -11,6 +12,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Header() {
   const location = useLocation();
@@ -18,6 +29,7 @@ export default function Header() {
   const { isAuthenticated, user } = useAuthStore();
   const logoutMutation = useLogout();
   const uniqueItemsCount = getUniqueItemsCount();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -25,6 +37,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logoutMutation.mutate();
+    setShowLogoutDialog(false);
   };
 
   return (
@@ -118,9 +131,8 @@ export default function Header() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={handleLogout}
+                    onClick={() => setShowLogoutDialog(true)}
                     className="text-destructive focus:text-destructive"
-                    disabled={logoutMutation.isPending}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
@@ -140,6 +152,29 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout? You will need to sign in again to
+              access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              disabled={logoutMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   );
 }

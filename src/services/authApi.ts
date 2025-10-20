@@ -173,4 +173,8 @@ export class AuthApi extends ApiService {
       return { isAuthenticated: false };
     }
   };
+
+  logout = async (): Promise<{ message: string }> => {
+    return this.post("/api/auth/logout");
+  };
 }

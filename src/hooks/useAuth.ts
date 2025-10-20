@@ -78,12 +78,21 @@ export const useLogout = () => {
 
   return useMutation({
     mutationFn: async () => {
-      // Clear all queries and logout
+      // First, call logout API to clear server-side session/cookies
+      // This MUST succeed to properly clear the refresh token cookie
+      await authApi.logout();
+
+      // Only after successful API call, clear local state
       queryClient.clear();
       logout();
     },
     onSuccess: () => {
       toast.success("Logged out successfully");
+    },
+    onError: (error: AxiosErrorResponse) => {
+      logger.error("Logout failed", { error });
+      toast.error("Logout failed - please try again");
+      // Don't clear local state if API call failed
     },
   });
 };
