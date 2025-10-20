@@ -57,7 +57,7 @@ export class AuthApi extends ApiService {
       message: string;
       user: BackendUser;
       accessToken: string;
-    }>("/api/auth/login", credentials);
+    }>("/api/auth/login/customer", credentials);
 
     // Transform BackendUser to User
     const user: User = {
