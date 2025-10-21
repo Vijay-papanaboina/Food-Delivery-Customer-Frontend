@@ -19,7 +19,6 @@ export const useOrders = (filters?: OrderFilters) => {
   return useQuery({
     queryKey: orderKeys.list(filters || {}),
     queryFn: () => orderApi.getOrders(filters),
-    enabled: true,
   });
 };
 

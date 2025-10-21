@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useOrders } from "@/hooks/useOrders";
 import { Button } from "@/components/ui/button";
@@ -7,10 +8,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Clock, Eye, ShoppingBag } from "lucide-react";
 import { format } from "date-fns";
 import { useAuthStore } from "@/store/authStore";
+import type { OrderStatus } from "@/types";
 
 export default function OrderHistory() {
   const { isAuthenticated } = useAuthStore();
-  const { data: ordersData, isLoading, error } = useOrders();
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | undefined>();
+  const {
+    data: ordersData,
+    isLoading,
+    error,
+  } = useOrders({ status: statusFilter });
 
   const orders = ordersData?.orders || [];
 
@@ -62,23 +69,6 @@ export default function OrderHistory() {
     );
   }
 
-  if (orders.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <ShoppingBag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-4">No Orders Yet</h2>
-          <p className="text-muted-foreground mb-6">
-            Start exploring restaurants and place your first order!
-          </p>
-          <Button asChild>
-            <Link to="/">Browse Restaurants</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -95,12 +85,71 @@ export default function OrderHistory() {
         </p>
       </div>
 
-      {/* Orders List */}
-      <div className="space-y-4">
-        {orders.map((order) => (
-          <OrderCard key={order.orderId} order={order} />
-        ))}
+      {/* Filter Buttons */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <Button
+          variant={statusFilter === undefined ? "default" : "outline"}
+          onClick={() => setStatusFilter(undefined)}
+        >
+          All Orders
+        </Button>
+        <Button
+          variant={statusFilter === "pending_payment" ? "default" : "outline"}
+          onClick={() => setStatusFilter("pending_payment")}
+        >
+          Payment Pending
+        </Button>
+        <Button
+          variant={statusFilter === "confirmed" ? "default" : "outline"}
+          onClick={() => setStatusFilter("confirmed")}
+        >
+          Order Confirmed
+        </Button>
+        <Button
+          variant={statusFilter === "ready" ? "default" : "outline"}
+          onClick={() => setStatusFilter("ready")}
+        >
+          Ready for Pickup
+        </Button>
+        <Button
+          variant={statusFilter === "out_for_delivery" ? "default" : "outline"}
+          onClick={() => setStatusFilter("out_for_delivery")}
+        >
+          Out for Delivery
+        </Button>
+        <Button
+          variant={statusFilter === "delivered" ? "default" : "outline"}
+          onClick={() => setStatusFilter("delivered")}
+        >
+          Delivered
+        </Button>
       </div>
+
+      {/* Orders List or Empty State */}
+      {orders.length === 0 ? (
+        <div className="text-center py-12">
+          <ShoppingBag className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-4">
+            {statusFilter ? "No Orders Found" : "No Orders Yet"}
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            {statusFilter
+              ? "Try selecting a different filter to see your orders."
+              : "Start exploring restaurants and place your first order!"}
+          </p>
+          {!statusFilter && (
+            <Button asChild>
+              <Link to="/">Browse Restaurants</Link>
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <OrderCard key={order.orderId} order={order} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
