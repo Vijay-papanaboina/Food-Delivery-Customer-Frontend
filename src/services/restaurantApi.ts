@@ -49,6 +49,7 @@ export class RestaurantApi extends ApiService {
         deliveryFee: parseFloat(restaurant.delivery_fee),
         isActive: restaurant.is_active,
         isOpen: restaurant.is_open,
+        imageUrl: restaurant.image_url,
         createdAt: restaurant.created_at,
       })
     );
@@ -82,6 +83,7 @@ export class RestaurantApi extends ApiService {
       deliveryFee: parseFloat(result.restaurant.delivery_fee),
       isActive: result.restaurant.is_active,
       isOpen: result.restaurant.is_open,
+      imageUrl: result.restaurant.image_url,
       createdAt: result.restaurant.created_at,
     };
 

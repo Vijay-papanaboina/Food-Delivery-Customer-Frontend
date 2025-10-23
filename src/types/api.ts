@@ -10,6 +10,7 @@ export interface BackendRestaurant {
   delivery_fee: string;
   is_active: boolean;
   is_open: boolean;
+  image_url?: string;
   created_at: string;
 }
 
@@ -22,6 +23,7 @@ export interface BackendMenuItem {
   category: string;
   is_available: boolean;
   preparation_time?: number;
+  image_url?: string;
   created_at: string;
 }
 

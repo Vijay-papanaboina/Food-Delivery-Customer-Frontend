@@ -6,7 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Star, Clock, DollarSign, Filter, UtensilsCrossed } from "lucide-react";
+import {
+  Search,
+  Star,
+  Clock,
+  DollarSign,
+  Filter,
+  UtensilsCrossed,
+} from "lucide-react";
 import type { RestaurantFilters } from "@/types";
 
 export default function Home() {
@@ -211,29 +218,27 @@ function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
   const cardContent = (
     <>
-      <CardHeader className="p-0">
-        <div
-          className={`h-48 bg-muted rounded-t-lg flex items-center justify-center overflow-hidden relative ${
-            isDisabled ? "opacity-60" : ""
-          }`}
-        >
-          {restaurant.imageUrl ? (
-            <img
-              src={restaurant.imageUrl}
-              alt={restaurant.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <UtensilsCrossed className="h-12 w-12 text-muted-foreground" />
-          )}
-          {isDisabled && (
-            <div className="absolute top-2 right-2">
-              <Badge variant="destructive">Closed</Badge>
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="p-4">
+      <div
+        className={`h-64 bg-muted rounded-t-lg flex items-center justify-center overflow-hidden relative ${
+          isDisabled ? "opacity-60" : ""
+        }`}
+      >
+        {restaurant.imageUrl ? (
+          <img
+            src={restaurant.imageUrl}
+            alt={restaurant.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <UtensilsCrossed className="h-12 w-12 text-muted-foreground" />
+        )}
+        {isDisabled && (
+          <div className="absolute top-2 right-2">
+            <Badge variant="destructive">Closed</Badge>
+          </div>
+        )}
+      </div>
+      <CardContent className="p-5">
         <div className="space-y-3">
           <div>
             <h3
@@ -284,7 +289,7 @@ function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
   return (
     <Card
-      className={`transition-shadow ${
+      className={`transition-shadow py-0 ${
         isDisabled ? "opacity-75" : "hover:shadow-lg cursor-pointer group"
       }`}
     >
