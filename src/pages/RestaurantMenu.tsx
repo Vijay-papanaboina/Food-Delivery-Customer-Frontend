@@ -21,6 +21,7 @@ import {
   Star,
   Clock,
   DollarSign,
+  UtensilsCrossed,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import type { MenuItem } from "@/types";
@@ -197,7 +198,7 @@ export default function RestaurantMenu() {
           </TabsList>
 
           <TabsContent value={selectedCategory} className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {menuItems.map((item) => (
                 <MenuItemCard
                   key={item.itemId}
@@ -316,50 +317,68 @@ function MenuItemCard({
         isDisabled ? "opacity-60" : "hover:shadow-md"
       }`}
     >
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-lg">{item.name}</h3>
-              {!item.isAvailable && isRestaurantOpen && (
-                <Badge variant="destructive" className="text-xs">
-                  Unavailable
-                </Badge>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-              {item.description}
-            </p>
-          </div>
-          <div className="text-right ml-4">
-            <span className="text-lg font-bold">${item.price.toFixed(2)}</span>
-            {item.preparationTime && (
-              <div className="text-xs text-muted-foreground mt-1">
-                {item.preparationTime} min
-              </div>
-            )}
-          </div>
+      <CardContent>
+        {/* Image */}
+        <div className="w-full h-48 bg-muted rounded-md mb-4 flex items-center justify-center overflow-hidden">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <UtensilsCrossed className="h-10 w-10 text-muted-foreground" />
+          )}
         </div>
 
-        <div className="flex items-center justify-between mt-4">
-          <Badge variant="outline">{item.category}</Badge>
-          <div className="flex items-center space-x-2">
-            {quantity > 0 && (
-              <Badge variant="secondary">{quantity} in cart</Badge>
-            )}
-            <Button
-              size="sm"
-              onClick={() => onSelect(item)}
-              disabled={isDisabled}
-              variant={isDisabled ? "outline" : "default"}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              {isDisabled
-                ? !isRestaurantOpen
-                  ? "Closed"
-                  : "Unavailable"
-                : "Add"}
-            </Button>
+        {/* Item Info */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-lg">{item.name}</h3>
+                {!item.isAvailable && isRestaurantOpen && (
+                  <Badge variant="destructive" className="text-xs">
+                    Unavailable
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                {item.description}
+              </p>
+            </div>
+            <div className="text-right ml-4">
+              <span className="text-lg font-bold">
+                ${item.price.toFixed(2)}
+              </span>
+              {item.preparationTime && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  {item.preparationTime} min
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-4">
+            <Badge variant="outline">{item.category}</Badge>
+            <div className="flex items-center space-x-2">
+              {quantity > 0 && (
+                <Badge variant="secondary">{quantity} in cart</Badge>
+              )}
+              <Button
+                size="sm"
+                onClick={() => onSelect(item)}
+                disabled={isDisabled}
+                variant={isDisabled ? "outline" : "default"}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                {isDisabled
+                  ? !isRestaurantOpen
+                    ? "Closed"
+                    : "Unavailable"
+                  : "Add"}
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>

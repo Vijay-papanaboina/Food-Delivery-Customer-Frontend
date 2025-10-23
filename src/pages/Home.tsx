@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Star, Clock, DollarSign, Filter } from "lucide-react";
+import { Search, Star, Clock, DollarSign, Filter, UtensilsCrossed } from "lucide-react";
 import type { RestaurantFilters } from "@/types";
 
 export default function Home() {
@@ -202,6 +202,7 @@ interface RestaurantCardProps {
     deliveryFee: number;
     isActive: boolean;
     isOpen: boolean;
+    imageUrl?: string;
   };
 }
 
@@ -212,11 +213,19 @@ function RestaurantCard({ restaurant }: RestaurantCardProps) {
     <>
       <CardHeader className="p-0">
         <div
-          className={`h-48 bg-gradient-to-br from-primary/20 to-primary/5 rounded-t-lg flex items-center justify-center relative ${
+          className={`h-48 bg-muted rounded-t-lg flex items-center justify-center overflow-hidden relative ${
             isDisabled ? "opacity-60" : ""
           }`}
         >
-          <div className="text-6xl">🍽️</div>
+          {restaurant.imageUrl ? (
+            <img
+              src={restaurant.imageUrl}
+              alt={restaurant.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <UtensilsCrossed className="h-12 w-12 text-muted-foreground" />
+          )}
           {isDisabled && (
             <div className="absolute top-2 right-2">
               <Badge variant="destructive">Closed</Badge>

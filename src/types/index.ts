@@ -10,6 +10,7 @@ export interface Restaurant {
   deliveryFee: number;
   isActive: boolean;
   isOpen: boolean;
+  imageUrl?: string;
   createdAt: string;
 }
 
@@ -23,6 +24,7 @@ export interface MenuItem {
   category: string;
   isAvailable: boolean;
   preparationTime?: number;
+  imageUrl?: string;
   createdAt: string;
 }
 
