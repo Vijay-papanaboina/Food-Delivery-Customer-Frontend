@@ -319,7 +319,7 @@ function MenuItemCard({
     >
       <CardContent>
         {/* Image */}
-        <div className="w-full h-full bg-muted rounded-md mb-4 flex items-center justify-center overflow-hidden">
+        <div className="w-full h-60 bg-muted rounded-md mb-4 flex items-center justify-center overflow-hidden">
           {item.imageUrl ? (
             <img
               src={item.imageUrl}
