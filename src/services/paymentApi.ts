@@ -14,7 +14,7 @@ export class PaymentApi extends ApiService {
       message: string;
       sessionId: string;
       url: string;
-    }>("/api/payments", paymentData);
+    }>("/api/payment-service/payments", paymentData);
 
     return result;
   };

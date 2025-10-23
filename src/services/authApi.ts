@@ -25,7 +25,7 @@ export class AuthApi extends ApiService {
       message: string;
       user: BackendUser;
       accessToken: string;
-    }>("/api/auth/signup", userData);
+    }>("/api/user-service/auth/signup", userData);
 
     // Transform BackendUser to User
     const user: User = {
@@ -57,7 +57,7 @@ export class AuthApi extends ApiService {
       message: string;
       user: BackendUser;
       accessToken: string;
-    }>("/api/auth/login/customer", credentials);
+    }>("/api/user-service/auth/login/customer", credentials);
 
     // Transform BackendUser to User
     const user: User = {
@@ -82,11 +82,11 @@ export class AuthApi extends ApiService {
     accessToken: string;
     user: BackendUser;
   }> => {
-    return this.post("/api/auth/refresh");
+    return this.post("/api/user-service/auth/refresh");
   };
 
   validateToken = async (): Promise<{ message: string; user: BackendUser }> => {
-    return this.post("/api/auth/validate");
+    return this.post("/api/user-service/auth/validate");
   };
 
   private handleRefreshResponse = (refreshResponse: {
@@ -175,6 +175,6 @@ export class AuthApi extends ApiService {
   };
 
   logout = async (): Promise<{ message: string }> => {
-    return this.post("/api/auth/logout");
+    return this.post("/api/user-service/auth/logout");
   };
 }

@@ -14,7 +14,7 @@ export class OrderApi extends ApiService {
     deliveryAddress: DeliveryAddress;
   }): Promise<{ message: string; order: Order }> => {
     const result = await this.post<{ message: string; order: Order }>(
-      "/api/orders",
+      "/api/order-service/orders",
       orderData
     );
 
@@ -36,7 +36,7 @@ export class OrderApi extends ApiService {
     if (filters?.limit) queryParams.append("limit", filters.limit.toString());
 
     const queryString = queryParams.toString();
-    const url = queryString ? `/api/orders?${queryString}` : "/api/orders";
+    const url = queryString ? `/api/order-service/orders?${queryString}` : "/api/order-service/orders";
 
     const result = await this.get<{ message: string; orders: Order[] }>(url);
 
@@ -50,7 +50,7 @@ export class OrderApi extends ApiService {
     order: Order;
   }> => {
     const result = await this.get<{ message: string; order: Order }>(
-      `/api/orders/${orderId}`
+      `/api/order-service/orders/${orderId}`
     );
 
     return result;
@@ -61,7 +61,7 @@ export class OrderApi extends ApiService {
     status: string
   ): Promise<{ message: string; order: Order }> => {
     const result = await this.put<{ message: string; order: Order }>(
-      `/api/orders/${orderId}/status`,
+      `/api/order-service/orders/${orderId}/status`,
       { status }
     );
 
@@ -72,7 +72,7 @@ export class OrderApi extends ApiService {
     orderId: string
   ): Promise<{ message: string; order: Order }> => {
     const result = await this.put<{ message: string; order: Order }>(
-      `/api/orders/${orderId}/cancel`
+      `/api/order-service/orders/${orderId}/cancel`
     );
 
     return result;

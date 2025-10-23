@@ -28,8 +28,8 @@ export class RestaurantApi extends ApiService {
 
     const queryString = queryParams.toString();
     const url = queryString
-      ? `/api/restaurants?${queryString}`
-      : "/api/restaurants";
+      ? `/api/restaurant-service/restaurants?${queryString}`
+      : "/api/restaurant-service/restaurants";
 
     const result = await this.get<{
       message: string;
@@ -69,7 +69,7 @@ export class RestaurantApi extends ApiService {
     const result = await this.get<{
       message: string;
       restaurant: BackendRestaurant;
-    }>(`/api/restaurants/${restaurantId}`);
+    }>(`/api/restaurant-service/restaurants/${restaurantId}`);
 
     // Transform BackendRestaurant to Restaurant
     const restaurant: Restaurant = {
@@ -101,7 +101,7 @@ export class RestaurantApi extends ApiService {
     const response = await this.get<{
       message: string;
       menu: MenuItem[];
-    }>(`/api/restaurants/${restaurantId}/menu${params}`);
+    }>(`/api/restaurant-service/restaurants/${restaurantId}/menu${params}`);
 
     // Backend already returns camelCase, so return directly
     return response.menu;
@@ -109,7 +109,7 @@ export class RestaurantApi extends ApiService {
 
   getMenuItem = async (itemId: string): Promise<MenuItem> => {
     const result = await this.get<{ message: string; item: MenuItem }>(
-      `/api/menu-items/${itemId}`
+      `/api/restaurant-service/menu-items/${itemId}`
     );
 
     return result.item;
@@ -120,7 +120,7 @@ export class RestaurantApi extends ApiService {
     items: Array<{ id: string; quantity: number }>
   ): Promise<{ valid: boolean; items: MenuItem[]; errors?: string[] }> => {
     return this.post<{ valid: boolean; items: MenuItem[]; errors?: string[] }>(
-      `/api/restaurants/${restaurantId}/menu/validate`,
+      `/api/restaurant-service/restaurants/${restaurantId}/menu/validate`,
       { items }
     );
   };

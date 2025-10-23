@@ -14,7 +14,7 @@ export class UserApi extends ApiService {
     const result = await this.get<{
       message: string;
       user: BackendUser;
-    }>("/api/users/profile");
+    }>("/api/user-service/users/profile");
 
     // Transform BackendUser to User
     const user: User = {
@@ -40,7 +40,7 @@ export class UserApi extends ApiService {
     const result = await this.put<{
       message: string;
       user: BackendUser;
-    }>("/api/users/profile", userData);
+    }>("/api/user-service/users/profile", userData);
 
     // Transform BackendUser to User
     const user: User = {
@@ -60,7 +60,9 @@ export class UserApi extends ApiService {
   };
 
   deleteProfile = async (): Promise<{ message: string }> => {
-    const result = await this.delete<{ message: string }>("/api/users/profile");
+    const result = await this.delete<{ message: string }>(
+      "/api/user-service/users/profile"
+    );
 
     return result;
   };
@@ -72,7 +74,7 @@ export class UserApi extends ApiService {
     const result = await this.get<{
       message: string;
       addresses: BackendAddress[];
-    }>("/api/users/addresses");
+    }>("/api/user-service/users/addresses");
 
     // Transform BackendAddress to DeliveryAddress
     const addresses: DeliveryAddress[] = result.addresses.map((addr) => ({
@@ -102,7 +104,7 @@ export class UserApi extends ApiService {
     const result = await this.post<{
       message: string;
       address: BackendAddress;
-    }>("/api/users/addresses", {
+    }>("/api/user-service/users/addresses", {
       label: addressData.label,
       street: addressData.street,
       city: addressData.city,
@@ -142,7 +144,7 @@ export class UserApi extends ApiService {
     const result = await this.put<{
       message: string;
       address: BackendAddress;
-    }>(`/api/users/addresses/${addressId}`, {
+    }>(`/api/user-service/users/addresses/${addressId}`, {
       label: addressData.label,
       street: addressData.street,
       city: addressData.city,
@@ -170,7 +172,7 @@ export class UserApi extends ApiService {
 
   deleteAddress = async (addressId: string): Promise<{ message: string }> => {
     const result = await this.delete<{ message: string }>(
-      `/api/users/addresses/${addressId}`
+      `/api/user-service/users/addresses/${addressId}`
     );
 
     return result;
@@ -185,7 +187,7 @@ export class UserApi extends ApiService {
     const result = await this.get<{
       message: string;
       items: Array<{ itemId: string; quantity: number }>;
-    }>("/api/cart");
+    }>("/api/user-service/cart");
 
     logger.info(`[UserAPI] User cart retrieved successfully`, {
       itemCount: result.items.length,
@@ -201,7 +203,10 @@ export class UserApi extends ApiService {
       itemCount: items.length,
     });
 
-    const result = await this.put<{ message: string }>("/api/cart", { items });
+    const result = await this.put<{ message: string }>(
+      "/api/user-service/cart",
+      { items }
+    );
 
     return result;
   };
