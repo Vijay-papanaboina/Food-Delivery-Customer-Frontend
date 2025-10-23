@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useLogin } from "@/hooks/useAuth";
+import { useAuthStore } from "@/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,8 +25,14 @@ export default function Login() {
   const loginMutation = useLogin();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuthStore();
 
   const from = location.state?.from?.pathname || "/";
+
+  // Redirect if already logged in
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />;
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
