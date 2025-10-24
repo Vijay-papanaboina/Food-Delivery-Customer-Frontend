@@ -41,7 +41,11 @@ export class ApiService {
       async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
+          !originalRequest._skipAuthRefresh
+        ) {
           originalRequest._retry = true;
 
           logger.warn(`[API] 401 Unauthorized - attempting token refresh`, {
