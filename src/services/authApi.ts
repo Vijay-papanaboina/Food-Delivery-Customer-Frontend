@@ -82,11 +82,19 @@ export class AuthApi extends ApiService {
     accessToken: string;
     user: BackendUser;
   }> => {
-    return this.post("/api/user-service/auth/refresh");
+    return this.request({
+      method: "POST",
+      url: "/api/user-service/auth/refresh",
+      _skipAuthRefresh: true,
+    });
   };
 
   validateToken = async (): Promise<{ message: string; user: BackendUser }> => {
-    return this.post("/api/user-service/auth/validate");
+    return this.request({
+      method: "POST",
+      url: "/api/user-service/auth/validate",
+      _skipAuthRefresh: true,
+    });
   };
 
   private handleRefreshResponse = (refreshResponse: {
