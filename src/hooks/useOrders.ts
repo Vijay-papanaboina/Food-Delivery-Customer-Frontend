@@ -45,6 +45,8 @@ export const useCreateOrder = () => {
       restaurantId: string;
       items: Array<{ id: string; quantity: number; price: number }>;
       deliveryAddress: DeliveryAddress;
+      customerName: string;
+      customerPhone: string;
     }) => orderApi.createOrder(orderData),
     retry: false, // Prevent auto-retry
     onMutate: () => {},

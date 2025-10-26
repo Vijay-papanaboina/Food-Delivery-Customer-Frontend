@@ -29,7 +29,7 @@ export default function Checkout() {
 
   // Check if any items are missing required fields
   const hasInvalidItems = items.some(
-    (item) => !item.itemId || !item.restaurantId || !item.name || !item.price,
+    (item) => !item.itemId || !item.restaurantId || !item.name || !item.price
   );
 
   // Prevent concurrent order placement
@@ -53,7 +53,7 @@ export default function Checkout() {
   }, [addressesData?.addresses]);
   const defaultAddress = useMemo(
     () => addresses.find((addr) => addr.isDefault),
-    [addresses],
+    [addresses]
   );
 
   // Initialize address selection
@@ -98,7 +98,7 @@ export default function Checkout() {
 
   const handleAddressChange = (
     field: keyof typeof deliveryAddress,
-    value: string,
+    value: string
   ) => {
     setDeliveryAddress((prev) => ({
       ...prev,
