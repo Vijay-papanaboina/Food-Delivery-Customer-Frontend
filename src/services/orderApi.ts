@@ -12,17 +12,19 @@ export class OrderApi extends ApiService {
     restaurantId: string;
     items: Array<{ id: string; quantity: number; price: number }>;
     deliveryAddress: DeliveryAddress;
+    customerName: string;
+    customerPhone: string;
   }): Promise<{ message: string; order: Order }> => {
     const result = await this.post<{ message: string; order: Order }>(
       "/api/order-service/orders",
-      orderData
+      orderData,
     );
 
     return result;
   };
 
   getOrders = async (
-    filters?: OrderFilters
+    filters?: OrderFilters,
   ): Promise<{
     message: string;
     orders: Order[];
@@ -36,7 +38,9 @@ export class OrderApi extends ApiService {
     if (filters?.limit) queryParams.append("limit", filters.limit.toString());
 
     const queryString = queryParams.toString();
-    const url = queryString ? `/api/order-service/orders?${queryString}` : "/api/order-service/orders";
+    const url = queryString
+      ? `/api/order-service/orders?${queryString}`
+      : "/api/order-service/orders";
 
     const result = await this.get<{ message: string; orders: Order[] }>(url);
 
@@ -44,13 +48,13 @@ export class OrderApi extends ApiService {
   };
 
   getOrder = async (
-    orderId: string
+    orderId: string,
   ): Promise<{
     message: string;
     order: Order;
   }> => {
     const result = await this.get<{ message: string; order: Order }>(
-      `/api/order-service/orders/${orderId}`
+      `/api/order-service/orders/${orderId}`,
     );
 
     return result;
@@ -58,21 +62,21 @@ export class OrderApi extends ApiService {
 
   updateOrderStatus = async (
     orderId: string,
-    status: string
+    status: string,
   ): Promise<{ message: string; order: Order }> => {
     const result = await this.put<{ message: string; order: Order }>(
       `/api/order-service/orders/${orderId}/status`,
-      { status }
+      { status },
     );
 
     return result;
   };
 
   cancelOrder = async (
-    orderId: string
+    orderId: string,
   ): Promise<{ message: string; order: Order }> => {
     const result = await this.put<{ message: string; order: Order }>(
-      `/api/order-service/orders/${orderId}/cancel`
+      `/api/order-service/orders/${orderId}/cancel`,
     );
 
     return result;

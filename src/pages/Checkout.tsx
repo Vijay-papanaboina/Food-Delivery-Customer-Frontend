@@ -17,7 +17,7 @@ import { toast } from "react-hot-toast";
 export default function Checkout() {
   const navigate = useNavigate();
   const { items, subtotal, clearCart, restaurantId } = useCartStore();
-  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function Checkout() {
 
   // Check if any items are missing required fields
   const hasInvalidItems = items.some(
-    (item) => !item.itemId || !item.restaurantId || !item.name || !item.price
+    (item) => !item.itemId || !item.restaurantId || !item.name || !item.price,
   );
 
   // Prevent concurrent order placement
@@ -53,7 +53,7 @@ export default function Checkout() {
   }, [addressesData?.addresses]);
   const defaultAddress = useMemo(
     () => addresses.find((addr) => addr.isDefault),
-    [addresses]
+    [addresses],
   );
 
   // Initialize address selection
@@ -98,7 +98,7 @@ export default function Checkout() {
 
   const handleAddressChange = (
     field: keyof typeof deliveryAddress,
-    value: string
+    value: string,
   ) => {
     setDeliveryAddress((prev) => ({
       ...prev,
@@ -137,6 +137,12 @@ export default function Checkout() {
       return;
     }
 
+    if (!user?.phone) {
+      toast.error("Please add a phone number to your profile before ordering.");
+      navigate("/profile");
+      return;
+    }
+
     isPlacingOrder.current = true;
     setIsProcessing(true);
 
@@ -150,6 +156,8 @@ export default function Checkout() {
           price: item.price,
         })),
         deliveryAddress,
+        customerName: user.name,
+        customerPhone: user.phone,
       });
 
       const order = orderResult.order;
